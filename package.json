@@ -1,0 +1,24 @@
+{
+  "name": "student-assessment-portal",
+  "version": "1.0.0",
+  "description": "Student Assessment Portal with secure server",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "test": "node test/server.test.mjs",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:migrate": "wrangler d1 migrations apply portal-db --remote",
+    "test:d1": "node --no-warnings test/d1.test.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.5"
+  },
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "4.151.3"
+  }
+}

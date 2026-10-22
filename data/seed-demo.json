@@ -1,0 +1,741 @@
+{
+ "school": {
+  "name": "ASUOM SENIOR HIGH SCHOOL",
+  "region": "Eastern Region",
+  "district": "Kwaebibirem",
+  "localGov": "KWAEBIBIREM",
+  "address": "Box 08, AKYEM ASUOM.",
+  "city": "AKYEM ASUOM",
+  "gps": "ASUOM SHS",
+  "phone": "0244791325",
+  "email": "asuomshs1970@gmail.com",
+  "code": "0021101"
+ },
+ "users": [
+  {
+   "id": "u1",
+   "name": "CARDI BEED",
+   "email": "testing@gmail.com",
+   "phone": "0203000408",
+   "designation": "Admin",
+   "status": "active",
+   "privileges": [
+    "Register Student",
+    "Capture Assessment Per Subject",
+    "Manage Students",
+    "Admin Panel",
+    "Transcript"
+   ],
+   "assigned": []
+  },
+  {
+   "id": "u2",
+   "name": "Obed Akoto",
+   "email": "obed.akoto@epshs.edu.gh",
+   "phone": "0246452873",
+   "designation": "Subject Teacher",
+   "status": "active",
+   "privileges": [
+    "Capture Assessment Per Subject",
+    "Score Update"
+   ],
+   "assigned": [
+    {
+     "subject": "Mathematics",
+     "classes": [
+      "ARTS 1",
+      "SCIENCE 1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u3",
+   "name": "Charles Obeng",
+   "email": "charel@gf.com",
+   "phone": "0246452111",
+   "designation": "Subject Teacher",
+   "status": "active",
+   "privileges": [
+    "Capture Assessment Per Subject",
+    "Score Update"
+   ],
+   "assigned": [
+    {
+     "subject": "Geography",
+     "classes": [
+      "ARTS 1"
+     ]
+    }
+   ]
+  }
+ ],
+ "classes": [
+  {
+   "id": "c1",
+   "year": "Year 1",
+   "learningArea": "GENERAL ARTS",
+   "name": "ARTS 1",
+   "subjects": [
+    "English Language",
+    "Mathematics",
+    "Integrated Science",
+    "Social Studies",
+    "Government",
+    "History",
+    "Geography",
+    "Literature in English"
+   ]
+  },
+  {
+   "id": "c2",
+   "year": "Year 1",
+   "learningArea": "SCIENCE",
+   "name": "SCIENCE 1",
+   "subjects": [
+    "English Language",
+    "Mathematics",
+    "Social Studies",
+    "Computing",
+    "Chemistry",
+    "Biology",
+    "Physics",
+    "Additional Mathematics",
+    "French",
+    "Physical Education and Health (PEH)"
+   ]
+  },
+  {
+   "id": "c3",
+   "year": "Year 1",
+   "learningArea": "BUSINESS",
+   "name": "BUSINESS 1",
+   "subjects": [
+    "English Language",
+    "Mathematics",
+    "Integrated Science",
+    "Social Studies",
+    "Financial Accounting",
+    "Cost Accounting",
+    "Business Management",
+    "Economics"
+   ]
+  },
+  {
+   "id": "c4",
+   "year": "Year 1",
+   "learningArea": "GENERAL ARTS",
+   "name": "GENERAL ARTS 1",
+   "subjects": [
+    "English Language",
+    "French",
+    "General Science",
+    "History",
+    "ICT",
+    "Literature in English",
+    "Mathematics",
+    "Physical Education & Health",
+    "Social Studies",
+    "Twi(Akuapem)"
+   ]
+  }
+ ],
+ "assessmentOveralls": {},
+ "classTermSettings": {
+  "SCIENCE 1": {
+   "academicYear": "2025-2026",
+   "dateVacated": "2026-02-25",
+   "nextSemesterBegins": "2026-05-04",
+   "promotedTo": "SECOND TERM",
+   "assistHeadAcademic": "Gbedemah K. Eyram",
+   "headmaster": "Addo Isaac"
+  }
+ },
+ "loginTrace": [
+  {
+   "branch": "ASUOM SENIOR HIGH SCHOOL",
+   "when": "20/12/2025 18:01:00",
+   "user": "Obed_Akoto",
+   "host": "SRV-TESTING"
+  },
+  {
+   "branch": "ASUOM SENIOR HIGH SCHOOL",
+   "when": "21/12/2025 16:18:00",
+   "user": "Obed_Akoto",
+   "host": "WAEC-ICTD"
+  },
+  {
+   "branch": "ASUOM SENIOR HIGH SCHOOL",
+   "when": "04/01/2026 11:21:00",
+   "user": "Obed_Akoto",
+   "host": "WAEC-ICTD"
+  }
+ ],
+ "students": [
+  {
+   "id": "2400710060D5",
+   "assRefId": "2400710060D5",
+   "surname": "TERRY",
+   "firstName": "JOHN",
+   "otherNames": "",
+   "natId": "GHA1000000001",
+   "gender": "MALE",
+   "dob": "2013-02-06",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "BUSINESS",
+   "class": "BUSINESS 1",
+   "status": "active",
+   "scores": {
+    "Mathematics": {
+     "Year 1": {
+      "s1": 80
+     }
+    },
+    "English Language": {
+     "Year 1": {
+      "s1": 70
+     }
+    },
+    "Integrated Science": {
+     "Year 1": {
+      "s1": 75,
+      "s2": 0
+     }
+    },
+    "Social Studies": {
+     "Year 1": {
+      "s1": 80
+     }
+    },
+    "Financial Accounting": {
+     "Year 1": {
+      "s1": 80,
+      "s2": 80
+     }
+    },
+    "Cost Accounting": {
+     "Year 1": {
+      "s1": 65
+     }
+    },
+    "Business Management": {
+     "Year 1": {
+      "s1": 80
+     }
+    },
+    "Economics": {
+     "Year 1": {
+      "s1": 80
+     }
+    }
+   },
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060B7",
+   "assRefId": "2400710060B7",
+   "surname": "ABU",
+   "firstName": "GLORIA",
+   "otherNames": "",
+   "natId": "GHA1000000002",
+   "gender": "FEMALE",
+   "dob": "2011-04-19",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "active",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060D2",
+   "assRefId": "2400710060D2",
+   "surname": "KALLESI",
+   "firstName": "CONRADO",
+   "otherNames": "",
+   "natId": "GHA1000000003",
+   "gender": "MALE",
+   "dob": "2012-11-06",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "active",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060D3",
+   "assRefId": "2400710060D3",
+   "surname": "SALIFU",
+   "firstName": "ISSAH",
+   "otherNames": "",
+   "natId": "GHA1000000004",
+   "gender": "MALE",
+   "dob": "2012-11-01",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "active",
+   "scores": {
+    "Geography": {
+     "Year 1": {
+      "s1": 62
+     }
+    }
+   },
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060E2",
+   "assRefId": "2400710060E2",
+   "surname": "BIKINANTIN",
+   "firstName": "KOMBAT ELIAS",
+   "otherNames": "",
+   "natId": "GHA1000000005",
+   "gender": "MALE",
+   "dob": "2012-11-14",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "active",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060E7",
+   "assRefId": "2400710060E7",
+   "surname": "DUUT",
+   "firstName": "EMMA GRACE",
+   "otherNames": "",
+   "natId": "GHA1000000006",
+   "gender": "FEMALE",
+   "dob": "2012-02-02",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "active",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "2400710060DB",
+   "assRefId": "2400710060DB",
+   "surname": "MENSAH",
+   "firstName": "JOANA",
+   "otherNames": "NAANA",
+   "natId": "GHA1233434311",
+   "gender": "FEMALE",
+   "dob": "2010-02-04",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "SCIENCE",
+   "class": "SCIENCE 1",
+   "status": "active",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "210071006004",
+   "assRefId": "210071006004",
+   "surname": "MOHAMMED",
+   "firstName": "MALTITI MUHAZ",
+   "otherNames": "",
+   "natId": "GHA1000000007",
+   "gender": "MALE",
+   "dob": "2008-03-03",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "ARTS 1",
+   "status": "incomplete",
+   "scores": {},
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "250021101040",
+   "assRefId": "250021101040",
+   "surname": "OPAREBEA",
+   "firstName": "ABROKWAH",
+   "otherNames": "GODARLING",
+   "natId": "GHA1000000008",
+   "gender": "FEMALE",
+   "dob": "2011-04-04",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "GENERAL ARTS 1",
+   "status": "active",
+   "scores": {
+    "English Language": {
+     "Year 1": {
+      "s1": 72
+     }
+    },
+    "French": {
+     "Year 1": {
+      "s1": 63
+     }
+    },
+    "General Science": {
+     "Year 1": {
+      "s1": 63
+     }
+    },
+    "History": {
+     "Year 1": {
+      "s1": 74
+     }
+    },
+    "ICT": {
+     "Year 1": {
+      "s1": 63
+     }
+    },
+    "Literature in English": {
+     "Year 1": {
+      "s1": 75
+     }
+    },
+    "Mathematics": {
+     "Year 1": {
+      "s1": 76
+     }
+    },
+    "Physical Education & Health": {
+     "Year 1": {
+      "s1": 73
+     }
+    },
+    "Social Studies": {
+     "Year 1": {
+      "s1": 77
+     }
+    },
+    "Twi(Akuapem)": {
+     "Year 1": {
+      "s1": 78
+     }
+    }
+   },
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "25002110103A",
+   "assRefId": "25002110103A",
+   "surname": "KWAKWA",
+   "firstName": "SIKA",
+   "otherNames": "GLADYS",
+   "natId": "GHA1000000009",
+   "gender": "FEMALE",
+   "dob": "2010-02-28",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "GENERAL ARTS",
+   "class": "GENERAL ARTS 1",
+   "status": "active",
+   "scores": {
+    "English Language": {
+     "Year 1": {
+      "s1": 72
+     }
+    },
+    "French": {
+     "Year 1": {
+      "s1": 61
+     }
+    },
+    "General Science": {
+     "Year 1": {
+      "s1": 64
+     }
+    },
+    "History": {
+     "Year 1": {
+      "s1": 66
+     }
+    },
+    "ICT": {
+     "Year 1": {
+      "s1": 71
+     }
+    },
+    "Literature in English": {
+     "Year 1": {
+      "s1": 62
+     }
+    },
+    "Mathematics": {
+     "Year 1": {
+      "s1": 68
+     }
+    },
+    "Physical Education & Health": {
+     "Year 1": {
+      "s1": 88
+     }
+    },
+    "Social Studies": {
+     "Year 1": {
+      "s1": 79
+     }
+    },
+    "Twi(Akuapem)": {
+     "Year 1": {
+      "s1": 90
+     }
+    }
+   },
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "",
+   "residency": "BOARDING",
+   "attendancePresent": "",
+   "attendanceOut": "",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": ""
+  },
+  {
+   "id": "250021101021",
+   "assRefId": "250021101021",
+   "surname": "EGBLORGBELI",
+   "firstName": "FAITH",
+   "otherNames": "SYLVESTER",
+   "natId": "GHA1000000010",
+   "gender": "FEMALE",
+   "dob": "2009-09-21",
+   "guardianName": "—",
+   "relationship": "—",
+   "phone": "—",
+   "profession": "—",
+   "address": "—",
+   "yearOfEntry": "2025",
+   "learningArea": "SCIENCE",
+   "class": "SCIENCE 1",
+   "status": "active",
+   "scores": {
+    "English Language": {
+     "Year 1": {
+      "s1": 67.7
+     }
+    },
+    "Mathematics": {
+     "Year 1": {
+      "s1": 85.3
+     }
+    },
+    "Social Studies": {
+     "Year 1": {
+      "s1": 65.8
+     }
+    },
+    "Computing": {
+     "Year 1": {
+      "s1": 89.5
+     }
+    },
+    "Chemistry": {
+     "Year 1": {
+      "s1": 73.6
+     }
+    },
+    "Biology": {
+     "Year 1": {
+      "s1": 89
+     }
+    },
+    "Physics": {
+     "Year 1": {
+      "s1": 82.2
+     }
+    },
+    "Additional Mathematics": {
+     "Year 1": {
+      "s1": 85
+     }
+    },
+    "French": {
+     "Year 1": {
+      "s1": 74.9
+     }
+    },
+    "Physical Education and Health (PEH)": {
+     "Year 1": {
+      "s1": 82.9
+     }
+    }
+   },
+   "parentAccess": {
+    "enabled": true,
+    "transcriptEnabled": true,
+    "terminalReportEnabled": true
+   },
+   "photo": null,
+   "house": "HOUSE2",
+   "residency": "BOARDING",
+   "attendancePresent": "0",
+   "attendanceOut": "50",
+   "components": {},
+   "scoreMeta": {},
+   "seniorHouseMaster": "Bernice Akorfa Tsekpetse"
+  }
+ ]
+}
