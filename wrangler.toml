@@ -10,5 +10,5 @@ run_worker_first = ["/api"]
 [[d1_databases]]
 binding = "DB"
 database_name = "portal-db"
-database_id = "PUT-YOUR-DATABASE-ID-HERE"   # printed by: npx wrangler d1 create portal-db
+database_id = "8da6944f-33bf-4aa3-8e61-7d9fec10a909"
 migrations_dir = "migrations"
