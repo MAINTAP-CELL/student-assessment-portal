@@ -12,3 +12,7 @@ binding = "DB"
 database_name = "portal-db"
 database_id = "8da6944f-33bf-4aa3-8e61-7d9fec10a909"
 migrations_dir = "migrations"
+
+[vars]
+# Lighter password hashing so the FREE Workers plan (10 ms limit) works. Remove this line on a paid plan.
+SCRYPT_N = "2048"

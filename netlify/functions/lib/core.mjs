@@ -39,24 +39,30 @@ const err = (status, message, extra) => ({ status, body: { error: message, ...(e
 const ok = (body) => ({ status: 200, body });
 const lc = (s) => String(s || '').trim().toLowerCase();
 
-function scrypt(password, salt) {
-  return new Promise((res, rej) => crypto.scrypt(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }, (e, k) => e ? rej(e) : res(k)));
+// Password hashing cost. Default is strong (16384). The Cloudflare FREE plan allows only ~10 ms of
+// processor time per request, so the Worker may lower it with SCRYPT_N (never below 1024).
+let SCRYPT_N = 16384;
+export function setScryptCost(n) { n = Number(n); if (n >= 1024 && (n & (n - 1)) === 0) SCRYPT_N = n; }
+function scrypt(password, salt, N) {
+  return new Promise((res, rej) => crypto.scrypt(password, salt, 64, { N, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }, (e, k) => e ? rej(e) : res(k)));
 }
 export async function hashPassword(password) {
   const salt = crypto.randomBytes(16);
-  const key = await scrypt(String(password), salt);
-  return `scrypt$${salt.toString('hex')}$${key.toString('hex')}`;
+  const key = await scrypt(String(password), salt, SCRYPT_N);
+  return `scrypt$${SCRYPT_N}$${salt.toString('hex')}$${key.toString('hex')}`;
 }
 export async function verifyPassword(password, stored) {
   try {
-    const [alg, saltHex, keyHex] = String(stored || '').split('$');
-    if (alg !== 'scrypt') return false;
-    const key = await scrypt(String(password), Buffer.from(saltHex, 'hex'));
+    const parts = String(stored || '').split('$');
+    if (parts[0] !== 'scrypt') return false;
+    const [N, saltHex, keyHex] = parts.length === 4 ? [Number(parts[1]), parts[2], parts[3]] : [16384, parts[1], parts[2]]; // 3 parts = older hashes
+    if (!(N >= 1024 && N <= 65536)) return false;
+    const key = await scrypt(String(password), Buffer.from(saltHex, 'hex'), N);
     const want = Buffer.from(keyHex, 'hex');
     return want.length === key.length && crypto.timingSafeEqual(key, want);
   } catch (e) { return false; }
 }
-const DUMMY_HASH = 'scrypt$00000000000000000000000000000000$' + '00'.repeat(64);
+const dummyHash = () => `scrypt$${SCRYPT_N}$00000000000000000000000000000000$` + '00'.repeat(64);
 
 const b64u = (b) => Buffer.from(b).toString('base64url');
 export function signToken(payload, secret) {
@@ -273,7 +279,7 @@ async function login(ctx, body, ip) {
   const staff = users.find(u => u.status === 'active' && ((u.username && lc(u.username) === lc(username)) || (u.email && lc(u.email) === lc(username))));
   let principal = null, reason = 'Failed — unknown username';
   if (staff) {
-    if (await verifyPassword(password, staff.passwordHash || DUMMY_HASH) && staff.passwordHash) principal = { role: staff.designation === 'Admin' ? 'admin' : 'teacher', user: staff };
+    if (await verifyPassword(password, staff.passwordHash || dummyHash()) && staff.passwordHash) principal = { role: staff.designation === 'Admin' ? 'admin' : 'teacher', user: staff };
     else reason = 'Failed — wrong password';
   } else {
     const st = (await allStudents(ctx.db)).find(s => lc(s.assRefId) === lc(username));
@@ -281,7 +287,7 @@ async function login(ctx, body, ip) {
       if (!(st.parentAccess && st.parentAccess.enabled)) reason = 'Failed — parent access not enabled';
       else if (!dobMatches(password, st.dob)) reason = 'Failed — wrong date of birth';
       else principal = { role: 'parent', student: st };
-    } else await verifyPassword(password, DUMMY_HASH); // keep timing similar
+    } else await verifyPassword(password, dummyHash()); // keep timing similar
   }
   const roleLabel = staff ? (staff.designation === 'Admin' ? 'Admin' : 'Teacher') : 'Parent';
   if (!principal) {

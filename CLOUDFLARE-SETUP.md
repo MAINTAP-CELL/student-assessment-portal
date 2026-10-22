@@ -2,8 +2,8 @@
 
 The same secure portal, running on Cloudflare. The page is served from `public/`, the server code runs as a Worker at `/api`, and the data lives in a D1 database.
 
-## IMPORTANT: choose the Workers plan first
-Passwords are checked with scrypt, which uses real processor time (roughly 50 to 100 ms per login). The **free** Workers plan allows about 10 ms per request, so logins can fail there. Use **Workers Paid (about US$5 a month)**. If you want to stay on free, tell me and I will lower the hashing cost (this makes passwords easier to crack, so I do not recommend it).
+## Free plan or paid plan
+The project is set for the **free** Workers plan: `wrangler.toml` has `SCRYPT_N = "2048"`, a lighter password check that fits the 10 ms limit. It is still safe against guessing because logins lock after 5 wrong tries. If you later move to Workers Paid (about US$5 a month), delete that line to get the strongest setting, then have users change their passwords.
 
 ## Steps (you do these; never send me passwords)
 1. Create a free Cloudflare account and, in **Workers & Pages**, subscribe to **Workers Paid**.
