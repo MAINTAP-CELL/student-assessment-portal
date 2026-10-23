@@ -1913,11 +1913,15 @@ function renderManageTable(){
   }
   box.innerHTML = `
     <table><thead><tr>
-      <th></th><th>Ass't Ref ID</th><th>Candidate</th><th>Gender</th><th>DOB</th><th>Class</th><th>House</th><th>Boarding</th><th>Guardian</th><th>Phone</th><th>Status</th><th>Actions</th>
+      <th></th><th>Edit / View</th><th>Ass't Ref ID</th><th>Candidate</th><th>Gender</th><th>DOB</th><th>Class</th><th>House</th><th>Boarding</th><th>Guardian</th><th>Phone</th><th>Status</th><th>Actions</th>
     </tr></thead><tbody>
     ${list.map(s=>`
       <tr class="${s.id===lastEditedStudent?'row-flash':''}">
         <td><div class="avatar" style="width:30px;height:30px;border-radius:4px;background:var(--forest);color:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'IBM Plex Mono',monospace;overflow:hidden;">${s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover;"/>` : initials(s)}</div></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="openEditStudent('${s.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="openViewStudent('${s.id}')">View</button>
+        </td>
         <td><code class="ref">${s.assRefId}</code></td>
         <td>${fullName(s)}</td>
         <td>${s.gender}</td>
@@ -1929,8 +1933,6 @@ function renderManageTable(){
         <td class="mono">${s.phone||'—'}</td>
         <td>${statusPill(s)}</td>
         <td style="white-space:nowrap;">
-          <button class="btn btn-ghost btn-sm" onclick="openEditStudent('${s.id}')">Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="openViewStudent('${s.id}')">View</button>
           <button class="btn btn-gold btn-sm" onclick="openRepeatStudent('${s.id}')">Repeat</button>
           <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Delete</button>
         </td>
