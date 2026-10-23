@@ -168,6 +168,8 @@
   .nav-item.active{ background:rgba(201,162,39,.14); border-left-color:var(--gold); color:#F7F2DF; font-weight:600; }
   .nav-item .dot{ width:5px; height:5px; border-radius:50%; background:currentColor; opacity:.55; flex-shrink:0; }
 
+  .menu-btn{ display:none; align-items:center; justify-content:center; width:40px; height:40px; border:1px solid var(--rule); background:#fff; border-radius:6px; font-size:22px; line-height:1; cursor:pointer; color:var(--forest); margin-right:10px; }
+  .menu-scrim{ display:none; }
   main{ padding:0; overflow-x:hidden; }
   .topbar{
     display:flex; align-items:center; justify-content:space-between; padding:16px 32px;
@@ -424,7 +426,14 @@
     .login-wrap{ grid-template-columns:1fr; }
     .login-side{ display:none; }
     #app.show{ grid-template-columns:1fr; }
-    aside{ display:none; }
+    aside{ position:fixed; top:0; left:0; bottom:0; width:270px; max-width:84vw; height:100%; z-index:60; transform:translateX(-105%); transition:transform .22s ease; box-shadow:none; }
+    body.menu-open aside{ transform:none; box-shadow:4px 0 24px rgba(0,0,0,.35); }
+    .menu-btn{ display:inline-flex !important; }
+    .menu-scrim{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:55; }
+    body.menu-open .menu-scrim{ display:block; }
+    .topbar{ padding:10px 14px; flex-wrap:wrap; gap:8px; }
+    .who{ flex-wrap:wrap; gap:8px; }
+    .content{ padding:18px 14px 50px; }
     .grid2, .grid3{ grid-template-columns:1fr; }
     .stat-row{ grid-template-columns:1fr 1fr; }
   }
@@ -512,9 +521,10 @@
     </div>
   </aside>
 
+  <div class="menu-scrim" onclick="document.body.classList.remove('menu-open')"></div>
   <main>
     <div class="topbar">
-      <div class="crumbs">Student Assessment Portal / <b id="crumb-current">Dashboard</b></div>
+      <div style="display:flex;align-items:center;min-width:0;"><button class="menu-btn" aria-label="Open menu" onclick="document.body.classList.toggle('menu-open')">☰</button><div class="crumbs">Student Assessment Portal / <b id="crumb-current">Dashboard</b></div></div>
       <div class="who">
         <span id="who-name">—</span>
         <div class="avatar" id="who-avatar">—</div>
@@ -1099,7 +1109,7 @@ const VIEW_TITLES = {
   terminalReport:'SHS Terminal Report', termSettings:'Term Settings', userManual:'User Manual', achievers:'Achievers', studentRanking:'Student Performance Ranking', remedial:'Remedial/Intervention Students', schoolMonitor:'School Monitor', awards:'Academic Awards'
 };
 document.querySelectorAll('.nav-item').forEach(el=>{
-  el.addEventListener('click', ()=> navigate(el.dataset.view));
+  el.addEventListener('click', ()=>{ document.body.classList.remove('menu-open'); navigate(el.dataset.view); });
 });
 function navigate(view){
   document.querySelectorAll('.nav-item').forEach(el=> el.classList.toggle('active', el.dataset.view===view));
