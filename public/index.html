@@ -296,8 +296,19 @@
   .grade-key tbody tr:nth-child(even) td{ background:#EAF1FB; }
 
 
-  .dash-top{ display:flex; gap:20px; flex-wrap:wrap; margin-bottom:26px; }
-  .dash-top .dtile{ width:196px; }
+  .dash-hero{ text-align:center; margin:2px 0 18px; }
+  .dash-logo{ width:132px; height:132px; margin:0 auto 10px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; border:3px solid var(--forest); box-shadow:0 2px 10px rgba(0,0,0,.15); }
+  .dash-logo img, .dash-logo svg{ width:100%; height:100%; object-fit:cover; }
+  .dash-school{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:var(--forest); }
+  .dash-top{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:22px; }
+  .dash-top .dtile{ width:138px; min-height:68px; padding:6px 6px 8px; border-radius:16px; }
+  .dash-top .dt-icon{ height:26px; }
+  .dash-top .dt-icon svg{ height:24px; width:auto; }
+  .dash-top .dt-label{ font-size:12.5px; margin-top:1px; }
+  .dash-top .dt-value{ font-size:14px; margin-top:1px; }
+  .dash-top .dlink{ padding:0; }
+  .dash-top .dlink-in{ padding:6px 4px; border-radius:16px; }
+  .dash-top .dt-link{ font-size:13.5px; margin-top:1px; }
   .dash-main{ display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:34px; align-items:start; margin-bottom:24px; }
   .dash-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:34px; margin-bottom:16px; }
   .dtile{ border:1px solid #d6dee8; border-radius:24px; background:linear-gradient(#cdd9e8 0%, #e6edf5 55%, #fbfcfe 100%); text-align:center; padding:10px 8px 12px; box-shadow:0 1px 2px rgba(0,0,0,.05); display:flex; flex-direction:column; justify-content:center; min-height:104px; }
@@ -331,7 +342,8 @@
     .da-body{ grid-template-columns:repeat(2,1fr); }
   }
   @media (max-width:640px){
-    .dash-top .dtile{ width:calc(50% - 12px); }
+    .dash-top .dtile{ width:calc(50% - 8px); }
+    .dash-logo{ width:104px; height:104px; }
     .dash-3{ grid-template-columns:1fr; }
   }
   .summary-report{ background:#fff; border:1px solid var(--rule); border-radius:4px; padding:24px 26px 30px; font-family:'IBM Plex Sans', sans-serif; color:#111; }
@@ -1292,6 +1304,10 @@ RENDER.dashboard = function(){
             <path ${hv('Female',female)} d="M${C} ${C} L${x} ${y} A${R} ${R} 0 ${large?0:1} 1 ${C} ${C-R} Z" fill="#e91e63" stroke="#fff" stroke-width="2"/>`;
   })();
   return `
+    <div class="dash-hero">
+      <div class="dash-logo">${state.school.logo ? `<img src="${state.school.logo}" alt="School logo"/>` : BADGE_SVG}</div>
+      <div class="dash-school">${state.school.name||''}</div>
+    </div>
     <div class="dash-top">
       ${tile(ico.people,'Total Students',total.toLocaleString())}
       ${tile(ico.book,'Subjects Offered',subjectsOffered)}
