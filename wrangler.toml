@@ -16,3 +16,6 @@ migrations_dir = "migrations"
 [vars]
 # Lighter password hashing so the FREE Workers plan (10 ms limit) works. Remove this line on a paid plan.
 SCRYPT_N = "2048"
+
+[triggers]
+crons = ["0 1 * * *"]   # nightly backup at 01:00 UTC

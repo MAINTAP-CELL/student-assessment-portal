@@ -505,6 +505,57 @@ async function sendSms(ctx, principal, b) {
   return ok({ sent: sent.length, failed, token: issue(ctx, principal) });
 }
 
+/* ---------------------------------------------------------------- backups */
+// Backups are full copies of the school's data (users, settings, every class of students). They are kept in
+// the same store under "backup/<id>"; a small list ("backup-index") holds one summary line per backup.
+const KEEP_BACKUPS = 14;
+async function snapshot(db) {
+  const data = { users: await getJ(db, 'users', []), config: await getJ(db, 'config', {}) };
+  for (const k of await db.list('students/')) data[k] = await getJ(db, k, []);
+  return data;
+}
+function summarise(data) {
+  const shards = Object.keys(data).filter(k => k.startsWith('students/'));
+  return { students: shards.reduce((n, k) => n + (data[k] || []).length, 0), classes: (data.config.classes || []).length, users: (data.users || []).length };
+}
+async function makeBackup(ctx, kind, by) {
+  const data = await snapshot(ctx.db);
+  const now = new Date();
+  const id = now.toISOString().replace(/[:.]/g, '-') + '-' + crypto.randomBytes(2).toString('hex');
+  const meta = { id, takenAt: now.toISOString(), kind, by: by || 'system', ...summarise(data) };
+  if (!(await ctx.db.write('backup/' + id, { meta, data }, null))) throw new Error('Could not save the backup.');
+  let drop = [];
+  await update(ctx.db, 'backup-index', [], list => {
+    const next = [meta, ...list].sort((x, y) => y.takenAt.localeCompare(x.takenAt));
+    drop = next.slice(KEEP_BACKUPS);
+    return next.slice(0, KEEP_BACKUPS);
+  });
+  for (const d of drop) { const r = await ctx.db.read('backup/' + d.id); if (r.etag) await ctx.db.write('backup/' + d.id, { pruned: true }, r.etag); }
+  return meta;
+}
+// Called by the nightly schedule (Cloudflare cron). Skips if a backup was taken in the last 20 hours.
+export async function autoBackup(ctx) {
+  await ensureInit(ctx);
+  const list = await getJ(ctx.db, 'backup-index', []);
+  if (list[0] && Date.now() - Date.parse(list[0].takenAt) < 20 * 3600 * 1000) return null;
+  return await makeBackup(ctx, 'auto', 'Nightly schedule');
+}
+async function readBackup(ctx, id) {
+  if (!/^[0-9TZ-]+-[0-9a-f]{4}$/.test(String(id))) return null;
+  const r = await ctx.db.read('backup/' + id);
+  return r.value && r.value.data ? r.value : null;
+}
+async function restoreBackup(ctx, principal, id) {
+  const b = await readBackup(ctx, id);
+  if (!b) throw Object.assign(new Error('That backup was not found.'), { status: 404 });
+  await makeBackup(ctx, 'before-restore', principal.user.name);   // safety copy of what is there now
+  for (const k of ['users', 'config']) await update(ctx.db, k, k === 'users' ? [] : {}, () => b.data[k]);
+  const have = await ctx.db.list('students/');
+  for (const k of new Set([...have, ...Object.keys(b.data).filter(x => x.startsWith('students/'))])) await update(ctx.db, k, [], () => b.data[k] || []);
+  await trace(ctx, `${principal.user.name} (${principal.user.email || principal.user.username})`, 'Admin', 'Restored backup ' + b.meta.takenAt, 'server', 'server');
+  return b.meta;
+}
+
 /* ---------------------------------------------------------------- entry point */
 export async function handle(ctx, req) {
   // req: { method, body (parsed JSON or null), ip, rawLength }
@@ -542,6 +593,18 @@ export async function handle(ctx, req) {
       case 'trace':
         if (principal.role !== 'admin') return err(403, 'Only the administrator can view the login trace.');
         return ok({ loginTrace: (await getJ(ctx.db, 'trace', [])).slice(-500), token: issue(ctx, principal) });
+      case 'listBackups': case 'backupNow': case 'downloadBackup': case 'restoreBackup': {
+        if (principal.role !== 'admin') return err(403, 'Only the administrator can manage backups.');
+        if (b.action === 'listBackups') return ok({ backups: await getJ(ctx.db, 'backup-index', []), token: issue(ctx, principal) });
+        if (b.action === 'backupNow') return ok({ meta: await makeBackup(ctx, 'manual', principal.user.name), backups: await getJ(ctx.db, 'backup-index', []), token: issue(ctx, principal) });
+        if (b.action === 'downloadBackup') {
+          const data = b.id ? (await readBackup(ctx, b.id)) : { meta: { takenAt: new Date().toISOString(), kind: 'download' }, data: await snapshot(ctx.db) };
+          if (!data) return err(404, 'That backup was not found.');
+          return ok({ file: JSON.stringify(data), token: issue(ctx, principal) });
+        }
+        const meta = await restoreBackup(ctx, principal, b.id);
+        return ok({ restored: meta, backups: await getJ(ctx.db, 'backup-index', []), token: issue(ctx, principal) });
+      }
       case 'logout': {
         const who = principal.role === 'parent' ? `${principal.student.assRefId} (${sessionUser(principal).name})` : `${principal.user.name} (${principal.user.email || principal.user.username})`;
         await trace(ctx, who, principal.role === 'parent' ? 'Parent' : principal.role === 'admin' ? 'Admin' : 'Teacher', 'Logged out', b.device, req.ip);
@@ -550,6 +613,7 @@ export async function handle(ctx, req) {
       default: return err(400, 'Unknown action.');
     }
   } catch (e) {
+    if (e && e.status === 404) return err(404, e.message);
     return err(500, 'Something went wrong on the server. Please try again.');
   }
 }

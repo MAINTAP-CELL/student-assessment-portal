@@ -26,3 +26,9 @@ The project is set for the **free** Workers plan: `wrangler.toml` has `SCRYPT_N 
 
 ## Backups
 Cloudflare D1 keeps point-in-time history (Time Travel). Restore with `npx wrangler d1 time-travel restore portal-db --timestamp=<time>`. The Phase 2 plan adds an in-app backup button.
+
+## Backups (built in)
+- A backup runs by itself every night at 01:00 UTC (set by `[triggers]` in `wrangler.toml`; no extra step needed after `npm run cf:deploy`). The latest 14 are kept.
+- The admin can also use **Settings > Backup & Restore** to back up now, download a copy to their own computer, or restore a backup. A safety copy of the current data is saved before every restore.
+- Keep a downloaded copy somewhere outside Cloudflare now and then (for example at the end of each term).
+- Free-plan note: Cloudflare D1 allows 500 MB per database on the free plan. Backups of a school with many photos can be large. If a backup ever fails with a storage error, tell me and I will lower how many are kept.

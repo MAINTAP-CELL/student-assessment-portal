@@ -518,6 +518,7 @@
       <div class="nav-item" data-view="loginTrace"><span class="dot"></span>Login Trace</div>
       <div class="nav-item" data-view="addClass"><span class="dot"></span>Add/Manage Classes</div>
       <div class="nav-item" data-view="termSettings"><span class="dot"></span>Term Settings</div>
+      <div class="nav-item" data-view="backup"><span class="dot"></span>Backup &amp; Restore</div>
     </div>
   </aside>
 
@@ -1105,7 +1106,7 @@ const VIEW_TITLES = {
   captureStudent:'Capture Assessment — Per Student', scoreUpdate:'Score Update', manageStudents:'Manage Students',
   parentAccess:'Parent Portal Access',
   transcript:'Transcript / Statement of Results', schoolInfo:'Update School Info', addUser:'Add User',
-  manageUsers:'Manage Users', loginTrace:'Login Trace', addClass:'Add/Manage Classes', classSummary:'Class Summary Report',
+  manageUsers:'Manage Users', loginTrace:'Login Trace', backup:'Backup & Restore', addClass:'Add/Manage Classes', classSummary:'Class Summary Report',
   terminalReport:'SHS Terminal Report', termSettings:'Term Settings', userManual:'User Manual', achievers:'Achievers', studentRanking:'Student Performance Ranking', remedial:'Remedial/Intervention Students', schoolMonitor:'School Monitor', awards:'Academic Awards'
 };
 document.querySelectorAll('.nav-item').forEach(el=>{
@@ -1135,6 +1136,7 @@ function initView(view){
     case 'schoolMonitor': if(document.getElementById('sm-year')) smRefreshClasses(); break;
     case 'remedial': if(document.getElementById('rem-year')) renderRemedial(); break;
     case 'terminalReport': if(document.getElementById('trm-area')) trmRefreshClasses(); else if(document.getElementById('trm-student')) renderTerminalReport(); break;
+    case 'backup': loadBackups(); break;
     case 'schoolInfo': siInit(); break;
     case 'loginTrace': api('trace',{}).then(r=>{ state.loginTrace = r.loginTrace||[]; const a = document.querySelector('.nav-item.active'); if(a && a.dataset.view==='loginTrace') document.getElementById('content').innerHTML = RENDER.loginTrace(); }).catch(()=>{}); break;
     case 'termSettings': if(document.getElementById('ts-class')) tsLoadForm(); break;
@@ -5303,6 +5305,65 @@ RENDER.loginTrace = function(){
     </div>
   `;
 };
+
+/* ---------------- Settings: Backup & Restore ---------------- */
+let backupList = [];
+RENDER.backup = function(){
+  return `
+    <div class="page-head"><h1>Backup &amp; Restore</h1><p>A backup is a saved copy of all students, scores, classes, users and settings. The system saves one automatically every night and keeps the latest 14. Take one yourself before big jobs such as Progress All or Graduate.</p></div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="bk-now" onclick="backupNow()">Backup now</button>
+      <button class="btn btn-ghost" onclick="downloadBackupFile('')">Download all data to this computer</button>
+    </div>
+    <div class="login-hint" style="margin:0 0 14px;">Downloaded files contain student records and sign-in details. Keep them private (a locked flash drive or folder).</div>
+    <div class="card" style="overflow-x:auto;"><div id="bk-box"><p style="padding:14px;">Loading…</p></div></div>
+  `;
+};
+function bkWhen(iso){ try{ return new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+function drawBackups(){
+  const box = document.getElementById('bk-box'); if(!box) return;
+  const kind = {auto:'Nightly (automatic)', manual:'Manual', 'before-restore':'Safety copy before a restore'};
+  box.innerHTML = backupList.length ? `<table><thead><tr><th>Date &amp; time</th><th>Type</th><th>By</th><th>Students</th><th>Classes</th><th>Users</th><th>Actions</th></tr></thead><tbody>
+    ${backupList.map(b=>`<tr><td class="mono">${bkWhen(b.takenAt)}</td><td>${kind[b.kind]||b.kind}</td><td>${b.by||'—'}</td><td>${b.students}</td><td>${b.classes}</td><td>${b.users}</td>
+      <td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="downloadBackupFile('${b.id}')">Download</button> <button class="btn btn-danger btn-sm" onclick="confirmRestore('${b.id}')">Restore</button></td></tr>`).join('')}</tbody></table>`
+    : '<p style="padding:14px;">No backups yet. Click <b>Backup now</b> to make the first one.</p>';
+}
+async function loadBackups(){
+  try{ const r = await api('listBackups'); backupList = r.backups||[]; drawBackups(); }
+  catch(e){ const box=document.getElementById('bk-box'); if(box) box.innerHTML = '<p style="padding:14px;color:#b3141c;">'+e.message+'</p>'; }
+}
+async function backupNow(){
+  const btn = document.getElementById('bk-now'); if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
+  try{ const r = await api('backupNow'); backupList = r.backups||[]; drawBackups(); toast('Backup saved: '+r.meta.students+' students.'); }
+  catch(e){ toast(e.message, true); }
+  if(btn){ btn.disabled = false; btn.textContent = 'Backup now'; }
+}
+async function downloadBackupFile(id){
+  try{
+    const r = await api('downloadBackup', id?{id}:{});
+    const blob = new Blob([r.file], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'portal-backup-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }catch(e){ toast(e.message, true); }
+}
+function confirmRestore(id){
+  const b = backupList.find(x=>x.id===id); if(!b) return;
+  openModal(`
+    <div class="modal-head"><h3>Restore this backup?</h3></div>
+    <div class="modal-body">
+      <p>Everything will be put back exactly as it was on <b>${bkWhen(b.takenAt)}</b> (${b.students} students, ${b.classes} classes, ${b.users} users). Anything added or changed after that time will be removed.</p>
+      <p>The system first saves a safety copy of the current data, so this can be undone by restoring that copy. Everyone will have to sign in again.</p>
+      <div class="field"><label>Type RESTORE to confirm</label><input id="bk-confirm" placeholder="RESTORE" autocomplete="off"/></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="doRestore('${id}')">Restore now</button></div>
+  `);
+}
+async function doRestore(id){
+  if((document.getElementById('bk-confirm').value||'').trim().toUpperCase()!=='RESTORE'){ toast('Type RESTORE to confirm.', true); return; }
+  try{ await api('restoreBackup',{id}); setToken(null); closeModal(); toast('Backup restored. Please sign in again.'); setTimeout(()=>location.reload(), 1500); }
+  catch(e){ toast(e.message, true); }
+}
 
 /* ---------------- Settings: Add Class ---------------- */
 RENDER.addClass = function(){

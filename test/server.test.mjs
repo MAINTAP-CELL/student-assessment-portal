@@ -199,4 +199,38 @@ ck('changing ADMIN_PASSWORD resets admin password', (await call(e2, { action: 'l
   await call0(fc, { action: 'setPassword', token: adm3.token, userId: me, password: 'Admin-Self-Reset-1' });
   ck('admin resetting their own password is not forced again', (await call0(fc, { action: 'login', username: '0051606', password: 'Admin-Self-Reset-1' }, '4.4.4.13')).body.user.mustChange === false);
 }
+// ---- backups
+{
+  const bc = mk(); const ip = '5.5.5.5';
+  const A = (await call0(bc, { action: 'login', username: '0051606', password: 'Adm1n-Pass-xyz' }, ip)).body;
+  const T = (await call0(bc, { action: 'login', username: 'obed.akoto@epshs.edu.gh', password: 'teacherpass1' }, ip)).body;
+  ck('teacher cannot list or take backups', (await call0(bc, { action: 'listBackups', token: T.token })).status === 403 && (await call0(bc, { action: 'backupNow', token: T.token })).status === 403);
+  ck('teacher cannot download or restore', (await call0(bc, { action: 'downloadBackup', token: T.token })).status === 403 && (await call0(bc, { action: 'restoreBackup', token: T.token, id: 'x' })).status === 403);
+  ck('no backups at first', (await call0(bc, { action: 'listBackups', token: A.token })).body.backups.length === 0);
+  let b = await call0(bc, { action: 'backupNow', token: A.token });
+  ck('admin backup works', b.status === 200 && b.body.meta.students === 11 && b.body.backups.length === 1, JSON.stringify(b.body).slice(0, 200));
+  const id = b.body.meta.id;
+  const dl = await call0(bc, { action: 'downloadBackup', token: A.token, id });
+  const file = JSON.parse(dl.body.file);
+  ck('download holds all students', Object.keys(file.data).filter(k => k.startsWith('students/')).reduce((n, k) => n + file.data[k].length, 0) === 11);
+  // change data after the backup: delete a student via save, edit settings
+  const stu = (await call0(bc, { action: 'students', token: A.token, shards: A.data.shards })).body.students;
+  const victim = stu[0];
+  const del = await call0(bc, { action: 'save', token: A.token, students: { delete: [victim.id] } });
+  const after = (await call0(bc, { action: 'students', token: A.token, shards: A.data.shards })).body.students;
+  ck('data changed after backup (setup)', after.length === 10 || del.status !== 200, 'len ' + after.length + ' del ' + del.status);
+  const rs = await call0(bc, { action: 'restoreBackup', token: A.token, id });
+  ck('restore works', rs.status === 200 && rs.body.backups.length === 2 && rs.body.backups.some(x => x.kind === 'before-restore'), JSON.stringify(rs.body).slice(0, 200));
+  const A2 = (await call0(bc, { action: 'login', username: '0051606', password: 'Adm1n-Pass-xyz' }, ip)).body;
+  const back = (await call0(bc, { action: 'students', token: A2.token, shards: A2.data.shards })).body.students;
+  ck('deleted student is back after restore', back.length === 11 && back.some(s => s.id === victim.id), 'len ' + back.length);
+  ck('restore is recorded in the login trace', (await call0(bc, { action: 'trace', token: A2.token })).body.loginTrace.some(t => /Restored backup/.test(t.status)));
+  ck('bad backup id refused', (await call0(bc, { action: 'restoreBackup', token: A2.token, id: '../users' })).status === 404);
+  // nightly: runs once, then skips within 20 hours; keeps 30
+  const { autoBackup } = await import('../netlify/functions/lib/core.mjs');
+  const fresh = mk(); const nb = await autoBackup(fresh); const nb2 = await autoBackup(fresh);
+  ck('nightly backup runs, then skips a repeat', nb && nb.kind === 'auto' && nb2 === null);
+  for (let i = 0; i < 17; i++) await call0(bc, { action: 'backupNow', token: A2.token });
+  ck('only the latest 14 are kept', (await call0(bc, { action: 'listBackups', token: A2.token })).body.backups.length === 14);
+}
 console.log(JSON.stringify(results.filter(r => r[0] === 'FAIL'), null, 1), 'total', results.length, 'pass', results.filter(r => r[0] === 'PASS').length);

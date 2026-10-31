@@ -1,5 +1,5 @@
 // Cloudflare Worker: POST /api (everything else is served from /public by Cloudflare)
-import { handle, setScryptCost } from '../netlify/functions/lib/core.mjs';
+import { handle, setScryptCost, autoBackup } from '../netlify/functions/lib/core.mjs';
 import { d1Db } from '../netlify/functions/lib/db-d1.mjs';
 import seed from '../netlify/functions/lib/seed.mjs';
 
@@ -14,5 +14,10 @@ export default {
     const ctx = { db: d1Db(env.DB), env, secret: env.SESSION_SECRET, fetch, seed };
     const r = await handle(ctx, { method: req.method, body, ip, rawLength: raw.length });
     return new Response(JSON.stringify(r.body), { status: r.status, headers: HEADERS });
+  },
+  // Nightly backup (see [triggers] in wrangler.toml)
+  async scheduled(event, env, ctx) {
+    setScryptCost(env.SCRYPT_N);
+    ctx.waitUntil(autoBackup({ db: d1Db(env.DB), env, secret: env.SESSION_SECRET, fetch, seed }));
   },
 };
