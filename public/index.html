@@ -4326,7 +4326,7 @@ const MANUAL_DESCRIPTIONS = {
 };
 const MANUAL_FALLBACK_DESC = 'Refer to this page for the related task — open it directly from the sidebar to see what it offers.';
 
-RENDER.userManual = function(){
+RENDER.userManualSource = function(){ // full manual, used only to produce user-manual.pdf
   const groups = [];
   document.querySelectorAll('.nav-group').forEach(group=>{
     if(group.style.display === 'none') return;
@@ -4422,6 +4422,20 @@ RENDER.userManual = function(){
       <button class="btn btn-ghost" onclick="smartPrint()">🖨 Print / Save as PDF</button>
     </div>
     <div id="manual-box"></div>
+  `;
+};
+
+RENDER.userManual = function(){
+  return `
+    <div class="page-head">
+      <h1>User Manual</h1>
+      <p>The complete guide to this portal is provided as a password-protected PDF.</p>
+    </div>
+    <div class="card" style="max-width:560px; padding:26px;">
+      <div style="font-size:15px; margin-bottom:14px;"><b>Student Assessment Portal — User Manual</b> (PDF)</div>
+      <p style="font-size:13.5px; color:var(--slate); margin:0 0 18px;">Download the file, then open it and type the password when asked. If you do not have the password, ask the school administrator.</p>
+      <a class="btn btn-primary" href="/user-manual.pdf" download="Student-Assessment-Portal-User-Manual.pdf" style="text-decoration:none;">⬇ Download User Manual (PDF)</a>
+    </div>
   `;
 };
 

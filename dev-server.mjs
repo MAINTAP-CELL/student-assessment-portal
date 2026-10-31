@@ -29,6 +29,10 @@ export function createServer({ db, env = process.env, seed, fetchImpl = fetch } 
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', ...SEC_HEADERS });
         return res.end(fs.readFileSync(path.join(here, 'public', 'index.html')));
       }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/user-manual.pdf') {
+        res.writeHead(200, { 'content-type': 'application/pdf', 'cache-control': 'no-store', ...SEC_HEADERS });
+        return res.end(fs.readFileSync(path.join(here, 'public', 'user-manual.pdf')));
+      }
       res.writeHead(404); res.end('Not found');
     } catch (e) { res.writeHead(500); res.end('Server error'); }
   });
