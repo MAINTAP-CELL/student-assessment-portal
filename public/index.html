@@ -1399,7 +1399,7 @@ RENDER.register = function(){
     </div>
     <div class="card" style="padding:18px 22px; margin-bottom:18px;">
       <div style="display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap;">
-        <div class="field"><label>Learning Area</label><select id="rs-bulk-area" onchange="rsBulkRefreshClasses()">${areaOptions}</select></div>
+        <div class="field"><label>Learning Area</label><select id="rs-bulk-area" onchange="rsBulkRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOptions}</select></div>
         <div class="field"><label>Class</label><select id="rs-bulk-class"></select></div>
         <button class="btn btn-ghost btn-sm" style="color:#1877c9; border-color:#1877c9; font-weight:700;" onclick="downloadStudentRegTemplate()">⬇ Download Template</button>
         <input type="file" id="rs-bulk-file" accept=".xlsx,.xls" style="max-width:220px;"/>
@@ -1409,7 +1409,8 @@ RENDER.register = function(){
     </div>
     <div class="toolbar" style="margin-bottom:18px;">
       <div class="field"><label>Learning Area</label><select id="rs-editfilter-area" onchange="rsEditFilterRefresh()">
-        <option value="ALL">All learning areas</option>
+        <option value="">***SELECT LEARNING AREA***</option>
+          <option value="ALL">All learning areas</option>
         ${areaOptions}
       </select></div>
       <div class="field"><label>Class</label><select id="rs-editfilter-class" onchange="rsEditPopulateStudents()"></select></div>
@@ -1479,7 +1480,7 @@ RENDER.register = function(){
       </div>
       <div class="grid2">
         <div class="field"><label>Learning Area *</label>
-          <select id="rs-area" onchange="rsRefreshClasses()">${areaOptions}</select>
+          <select id="rs-area" onchange="rsRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOptions}</select>
         </div>
         <div class="field"><label>Class *</label><select id="rs-class"></select></div>
       </div>
@@ -1604,7 +1605,7 @@ function rsRefreshClasses(){
   const area = document.getElementById('rs-area').value;
   const sel = document.getElementById('rs-class');
   const opts = liveClasses().filter(c=>c.learningArea===area);
-  sel.innerHTML = opts.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') || '<option>—create a class first—</option>';
+  sel.innerHTML = !area ? '<option value="">***SELECT CLASS***</option>' : (opts.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') || '<option value="">— create a class first —</option>');
 }
 setTimeout(()=>{ if(document.getElementById('rs-area')) rsRefreshClasses(); }, 0);
 
@@ -1645,6 +1646,8 @@ function submitRegister(){
     navigate('manageStudents');
     return;
   }
+  if(!val('rs-area')){ toast('Select a Learning Area.', true); return; }
+  if(!val('rs-class')){ toast('Select a Class.', true); return; }
   const year = String(new Date().getFullYear()).slice(-2);
   const ref = year+'0071'+String(Math.floor(1000+Math.random()*8999));
   const s = mkStudent(ref, sur.toUpperCase(), first.toUpperCase(), val('rs-other').toUpperCase(),
@@ -1672,7 +1675,7 @@ function rsBulkRefreshClasses(){
   const area = document.getElementById('rs-bulk-area').value;
   const sel = document.getElementById('rs-bulk-class');
   const opts = liveClasses().filter(c=>c.learningArea===area);
-  sel.innerHTML = opts.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') || '<option value="">— create a class first —</option>';
+  sel.innerHTML = !area ? '<option value="">***SELECT CLASS***</option>' : (opts.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') || '<option value="">— create a class first —</option>');
 }
 function buildRegListValidationXML(col, listValues, rowCount){
   const lastRow = rowCount + 1;
@@ -2690,7 +2693,7 @@ RENDER.captureSubject = function(){
     <div class="toolbar">
       <div class="field"><label>Semester</label><select id="cs-sem" onchange="renderCaptureSubject()"><option value="s1">1st Sem</option><option value="s2">2nd Sem</option></select></div>
       <div class="field"><label>Year</label><select id="cs-year" onchange="csRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Learning Area</label><select id="cs-area" onchange="csRefreshClasses()">${areaOpts}</select></div>
+      <div class="field"><label>Learning Area</label><select id="cs-area" onchange="csRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       <div class="field"><label>Class</label><select id="cs-class" onchange="csRefreshSubjects()"></select></div>
       <div class="field"><label>Subject</label><select id="cs-subject" onchange="renderCaptureSubject()"></select></div>
       <div class="field" style="min-width:240px;"><label>Assessment Mode</label>
@@ -3312,7 +3315,7 @@ RENDER.captureStudent = function(){
     <div class="toolbar">
       <div class="field"><label>Semester</label><select id="cps-sem" onchange="renderCaptureStudent()"><option value="s1">1st Sem</option><option value="s2">2nd Sem</option></select></div>
       <div class="field"><label>Year</label><select id="cps-year" onchange="cpsRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Learning Area</label><select id="cps-area" onchange="cpsRefreshClasses()">${areaOpts}</select></div>
+      <div class="field"><label>Learning Area</label><select id="cps-area" onchange="cpsRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       <div class="field"><label>Class</label><select id="cps-class" onchange="renderCaptureStudent()"></select></div>
     </div>
     <div class="card" style="overflow-x:auto;"><div id="cps-table"></div></div>
@@ -3378,7 +3381,7 @@ RENDER.scoreUpdate = function(){
     <div class="toolbar">
       <div class="field"><label>Semester</label><select id="su-sem" onchange="suRefresh()"><option value="s1">1st Sem</option><option value="s2">2nd Sem</option></select></div>
       <div class="field"><label>Year</label><select id="su-year" onchange="suRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Learning Area</label><select id="su-area" onchange="suRefreshClasses()">${areaOpts}</select></div>
+      <div class="field"><label>Learning Area</label><select id="su-area" onchange="suRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       <div class="field"><label>Class</label><select id="su-class" onchange="suRefreshSubj()"></select></div>
       <div class="field"><label>Subject</label><select id="su-subject" onchange="suRefresh()"></select></div>
       <div class="field search"><label>Search Ref ID</label><input id="su-search" oninput="suRefresh()" placeholder="Search…"/></div>
@@ -3501,6 +3504,7 @@ RENDER.transcript = function(){
       <div class="field"><label>Year</label><select id="tr-year" onchange="trFilterRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
       <div class="field"><label>Learning Area</label>
         <select id="tr-area" onchange="trFilterRefreshClasses()">
+          <option value="">***SELECT LEARNING AREA***</option>
           <option value="ALL">All learning areas</option>
           ${areaOpts}
         </select>
@@ -3795,7 +3799,7 @@ RENDER.classSummary = function(){
     </div>
     <div class="toolbar">
       <div class="field"><label>Year</label><select id="csum-year" onchange="csumRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Learning Area</label><select id="csum-area" onchange="csumRefreshClasses()">${areaOpts}</select></div>
+      <div class="field"><label>Learning Area</label><select id="csum-area" onchange="csumRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       <div class="field"><label>Class</label><select id="csum-class" onchange="renderClassSummary()"></select></div>
       <div class="field"><label>Semester</label>
         <select id="csum-sem" onchange="renderClassSummary()"><option value="s1">ONE (1)</option><option value="s2">TWO (2)</option></select>
@@ -3988,7 +3992,7 @@ RENDER.terminalReport = function(){
     <div class="toolbar">
       <div class="field"><label>Semester</label><select id="trm-sem" onchange="renderTerminalReport()"><option value="s1">ONE (1)</option><option value="s2">TWO (2)</option></select></div>
       <div class="field"><label>Year</label><select id="trm-year" onchange="trmRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Learning Area</label><select id="trm-area" onchange="trmRefreshClasses()">${areaOpts}</select></div>
+      <div class="field"><label>Learning Area</label><select id="trm-area" onchange="trmRefreshClasses()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       <div class="field"><label>Class</label><select id="trm-class" onchange="trmRefreshStudents()"></select></div>
       <div class="field search"><label>Search Ref ID / Name</label><input id="trm-search" oninput="trmRefreshStudents()" placeholder="Search…"/></div>
       <div class="field" style="min-width:260px;"><label>Student</label><select id="trm-student" onchange="renderTerminalReport()"></select></div>
@@ -4611,6 +4615,7 @@ RENDER.studentRanking = function(){
       </div>
       <div class="field"><label>Learning Area</label>
         <select id="rank-area" onchange="rankRefreshClasses()">
+          <option value="">***SELECT LEARNING AREA***</option>
           <option value="ALL">All learning areas</option>
           ${areaOpts}
         </select>
@@ -4723,6 +4728,7 @@ RENDER.schoolMonitor = function(){
         <select id="sm-year" onchange="smRefreshClasses()"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
       <div class="field"><label>Learning Area</label>
         <select id="sm-area" onchange="smRefreshClasses()">
+          <option value="">***SELECT LEARNING AREA***</option>
           <option value="ALL">All learning areas</option>
           ${Object.keys(SUBJECT_POOL).filter(k=>k!=='CORE').map(a=>`<option value="${a}">${a}</option>`).join('')}
         </select></div>
@@ -5392,7 +5398,7 @@ RENDER.addClass = function(){
     <div class="card" style="padding:26px 28px; max-width:640px;">
       <div class="grid2">
         <div class="field"><label>Year</label><select id="ac-year"><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-        <div class="field"><label>Learning Area</label><select id="ac-area" onchange="acRefreshSubjects()">${areaOpts}</select></div>
+        <div class="field"><label>Learning Area</label><select id="ac-area" onchange="acRefreshSubjects()"><option value="">***SELECT LEARNING AREA***</option>${areaOpts}</select></div>
       </div>
       <div class="field"><label>Class Name</label><input id="ac-name" placeholder="e.g. ARTS 2"/></div>
       <div class="field"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;"><label style="margin:0;">Subjects</label><span id="ac-count" class="ac-count">Selected: 0</span></div><div id="ac-subjects" style="display:flex; flex-wrap:wrap; gap:6px;"></div></div>
@@ -5480,6 +5486,7 @@ setTimeout(()=>{ if(document.getElementById('ac-area')) acRefreshSubjects(); },0
 function submitAddClass(){
   const name = val('ac-name');
   if(!name){ toast('Enter a class name.', true); return; }
+  if(!val('ac-area')){ toast('Select a Learning Area.', true); return; }
   const checked = [...document.querySelectorAll('#ac-subjects input:checked')].map(i=>i.value);
   state.classes.push({id:'c'+Date.now(), year: val('ac-year'), learningArea: val('ac-area'), name, subjects: checked});
   toast('Class "'+name+'" created.');
