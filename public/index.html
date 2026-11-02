@@ -296,11 +296,11 @@
   .grade-key tbody tr:nth-child(even) td{ background:#EAF1FB; }
 
 
-  .dash-hero{ text-align:center; margin:2px 0 18px; }
+  .dash-hero{ text-align:center; margin:0 0 24px; }
   .dash-logo{ width:132px; height:132px; margin:0 auto 10px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; border:3px solid var(--forest); box-shadow:0 2px 10px rgba(0,0,0,.15); }
   .dash-logo img, .dash-logo svg{ width:100%; height:100%; object-fit:cover; }
   .dash-school{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:var(--forest); }
-  .dash-top{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:22px; }
+  .dash-top{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
   .dash-top .dtile{ width:138px; min-height:68px; padding:6px 6px 8px; border-radius:16px; }
   .dash-top .dt-icon{ height:26px; }
   .dash-top .dt-icon svg{ height:24px; width:auto; }
@@ -1304,16 +1304,16 @@ RENDER.dashboard = function(){
             <path ${hv('Female',female)} d="M${C} ${C} L${x} ${y} A${R} ${R} 0 ${large?0:1} 1 ${C} ${C-R} Z" fill="#e91e63" stroke="#fff" stroke-width="2"/>`;
   })();
   return `
-    <div class="dash-hero">
-      <div class="dash-logo">${state.school.logo ? `<img src="${state.school.logo}" alt="School logo"/>` : BADGE_SVG}</div>
-      <div class="dash-school">${state.school.name||''}</div>
-    </div>
     <div class="dash-top">
       ${tile(ico.people,'Total Students',total.toLocaleString())}
       ${tile(ico.book,'Subjects Offered',subjectsOffered)}
       ${tile(ico.person,'Teaching Staff',teachingStaff)}
       ${isAdmin ? linkTile(ico.list,'Admin Panel','manageUsers') : ''}
       ${linkTile(ico.check,'User Resources','userManual')}
+    </div>
+    <div class="dash-hero">
+      <div class="dash-logo">${state.school.logo ? `<img src="${state.school.logo}" alt="School logo"/>` : BADGE_SVG}</div>
+      <div class="dash-school">${state.school.name||''}</div>
     </div>
     <div class="dash-main">
       <div class="dash-left">
