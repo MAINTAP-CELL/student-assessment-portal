@@ -241,6 +241,8 @@
   .drop-table tbody tr:nth-child(odd){ background:#f9f9f9; }
   .drop-btn{ background:linear-gradient(#d9363e,#b3141c); color:#fff; border:1px solid #9d1118; border-radius:4px; padding:10px 14px; font-weight:700; font-size:14px; cursor:pointer; }
   .drop-btn:hover{ background:linear-gradient(#e3454c,#c01a22); }
+  .field .subj-chip{ display:inline-flex; width:auto; margin:2px; text-transform:none; letter-spacing:0; font-size:12px; }
+  .subj-chip input[type=checkbox]{ width:auto; padding:0; margin:0 4px 0 0; flex:none; }
   .subj-chip button{ background:none; border:none; color:var(--clay); font-size:13px; line-height:1; padding:0;}
 
   .transcript{
@@ -296,6 +298,7 @@
   .grade-key tbody tr:nth-child(even) td{ background:#EAF1FB; }
 
 
+  .ac-count{ background:var(--forest); color:#fff; font-weight:700; font-size:12.5px; padding:4px 12px; border-radius:999px; white-space:nowrap; }
   .dash-hero{ text-align:center; margin:0 0 24px; }
   .dash-logo{ width:132px; height:132px; margin:0 auto 10px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; border:3px solid var(--forest); box-shadow:0 2px 10px rgba(0,0,0,.15); }
   .dash-logo img, .dash-logo svg{ width:100%; height:100%; object-fit:cover; }
@@ -5392,7 +5395,7 @@ RENDER.addClass = function(){
         <div class="field"><label>Learning Area</label><select id="ac-area" onchange="acRefreshSubjects()">${areaOpts}</select></div>
       </div>
       <div class="field"><label>Class Name</label><input id="ac-name" placeholder="e.g. ARTS 2"/></div>
-      <div class="field"><label>Subjects</label><div id="ac-subjects" style="display:flex; flex-wrap:wrap; gap:6px;"></div></div>
+      <div class="field"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;"><label style="margin:0;">Subjects</label><span id="ac-count" class="ac-count">Selected: 0</span></div><div id="ac-subjects" style="display:flex; flex-wrap:wrap; gap:6px;"></div></div>
       <button class="btn btn-primary" onclick="submitAddClass()">Submit</button>
     </div>
     <div class="card" style="margin-top:20px; overflow-x:auto;">
@@ -5455,6 +5458,10 @@ function addClassSubject(classId){
   navigate('addClass');
   toast(`"${sel.value}" added to ${c.name}.`);
 }
+function acUpdateCount(){
+  const n = document.querySelectorAll('#ac-subjects input:checked').length, el = document.getElementById('ac-count');
+  if(el) el.textContent = 'Selected: ' + n + (n===1 ? ' subject' : ' subjects');
+}
 function acRefreshSubjects(){
   const area = document.getElementById('ac-area').value;
   const defaults = [...SUBJECT_POOL.CORE, ...(SUBJECT_POOL[area]||[])];
@@ -5466,6 +5473,8 @@ function acRefreshSubjects(){
     <div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--slate); margin:12px 0 6px; width:100%;">Other subjects offered by the school</div>
     <div style="width:100%;">${extras.map(s=>`<label class="subj-chip" style="cursor:pointer;"><input type="checkbox" value="${s}" style="margin-right:4px;"/>${s}</label>`).join('')}</div>
   `;
+  box.onchange = acUpdateCount;
+  acUpdateCount();
 }
 setTimeout(()=>{ if(document.getElementById('ac-area')) acRefreshSubjects(); },0);
 function submitAddClass(){
