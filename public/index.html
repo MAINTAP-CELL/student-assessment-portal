@@ -1804,7 +1804,7 @@ function uploadBulkStudents(){
       if(ref && !seen[ref.toLowerCase()]) seen[ref.toLowerCase()] = rowNo;
 
       const displayName = [surname, firstName, cell(row, C.other)].filter(Boolean).join(' ');
-      if(reasons.length){ rejected.push({ rowNo, ref, name: displayName, reasons }); continue; }
+      if(reasons.length){ rejected.push({ rowNo, ref, name: displayName, cls: clsName, reasons }); continue; }
 
       const s = mkStudent(
         ref, surname.toUpperCase(), firstName.toUpperCase(), cell(row, C.other).toUpperCase(),
@@ -2979,6 +2979,7 @@ function showUploadReport(kind, title, lines, rejected, saved){
       <td class="mono">${r.rowNo}</td>
       <td><code class="ref">${escUploadText(r.ref)}</code></td>
       <td style="font-weight:600;">${escUploadText(r.name)}</td>
+      <td style="white-space:nowrap; font-weight:600;">${escUploadText(r.cls||'—')}</td>
       <td style="font-size:12px; line-height:1.55;">${r.reasons.map(x=>`• ${escUploadText(x)}`).join('<br/>')}</td>
     </tr>`).join('');
   const perClass = {};
@@ -2991,7 +2992,7 @@ function showUploadReport(kind, title, lines, rejected, saved){
       ${savedChips ? `<div style="margin:10px 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--slate);">Saved scores by class</div><div>${savedChips}</div>` : ''}
       ${rejected.length ? `
         <div style="margin:16px 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--clay); font-weight:700;">Not uploaded — reasons</div>
-        <table><thead><tr><th>Row</th><th>Ass't Ref ID</th><th>Name on sheet</th><th>Reason</th></tr></thead><tbody>${rejRows}</tbody></table>
+        <table><thead><tr><th>Row</th><th>Ass't Ref ID</th><th>Name on sheet</th><th>Class</th><th>Reason</th></tr></thead><tbody>${rejRows}</tbody></table>
         ${rejected.length>60 ? `<div style="font-size:12px; color:var(--slate); margin-top:6px;">…and ${rejected.length-60} more rejected row(s).</div>` : ''}
       ` : ''}
     </div>
@@ -3110,7 +3111,7 @@ function uploadBulkScores(){
         pending.push({ key:c.key, raw, max });
       });
 
-      if(reasons.length){ rejected.push({ rowNo, ref:refRaw, name:nameRaw, reasons }); continue; }
+      if(reasons.length){ rejected.push({ rowNo, ref:refRaw, name:nameRaw, cls: student.class, reasons }); continue; }
 
       // all conditions matched — save components, overall scores and the recomputed final score
       const okey = assessmentOverallsKey(cls.name, subjKey, sem);
