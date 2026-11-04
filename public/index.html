@@ -1867,6 +1867,7 @@ RENDER.manageStudents = function(){
       <button class="btn btn-ghost" onclick="downloadStudentData()">Download Student Data ⬇</button>
       <button class="btn btn-gold" onclick="progressAll()">Progress All ↝</button>
     </div>
+    <div id="ms-count" style="margin:0 0 10px;"></div>
     <div class="card" style="overflow-x:auto;"><div id="ms-table"></div></div>
   `;
 };
@@ -1924,8 +1925,24 @@ function downloadStudentData(){
   toast(`Downloaded ${list.length} student record(s) for ${cls}.`);
 }
 let lastEditedStudent = null;
+function msUpdateCount(list){
+  const el = document.getElementById('ms-count'); if(!el) return;
+  if(list === null){ el.innerHTML = ''; return; }
+  const cls = (document.getElementById('ms-class')||{}).value;
+  const q = (document.getElementById('ms-search')||{}).value;
+  const n = x => x + ' student' + (x===1 ? '' : 's');
+  let txt;
+  if(cls && cls!=='ALL'){
+    const total = state.students.filter(s=>s.class===cls).length;
+    txt = `${cls}: ${n(total)} registered` + (q && list.length!==total ? ` · ${list.length} match your search` : '');
+  } else {
+    txt = `${n(list.length)} registered in this selection` + (q ? ' (search applied)' : '');
+  }
+  el.innerHTML = `<span class="ac-count" style="font-size:13.5px; padding:6px 16px;">${escUploadText(txt)}</span>`;
+}
 function renderManageTable(){
   const list = msFilteredList();
+  msUpdateCount(list);
   if(list === null){
     document.getElementById('ms-table').innerHTML = `<div class="empty"><div class="glyph">▤</div><b>Select a learning area and year to begin</b><p>Then pick a class (or All classes) to list the students.</p></div>`;
     return;
