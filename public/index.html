@@ -5289,27 +5289,37 @@ function openAssignSubjClass(id){
             <input type="checkbox" id="asc-select-all" onchange="toggleAllAscClasses(this.checked)" style="flex-shrink:0; width:16px; height:16px;"/>
             <span style="font-weight:700;">Select all</span>
           </label>
-          ${state.classes.map((c,i)=>`<label style="display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13.5px; cursor:pointer; ${i<state.classes.length-1?'border-bottom:1px solid var(--rule);':''}">
-            <input type="checkbox" class="asc-class-cb" id="asc-c-${c.id}" onchange="ascSyncSelectAll()" style="flex-shrink:0; width:16px; height:16px;"/>
-            <span>${c.name} <span style="color:var(--slate); font-size:11.5px;">— ${c.learningArea}</span></span>
-          </label>`).join('')}
+          ${liveClasses().map((c,i,arr)=>{ const n = ascStudentCount(c); return `<label style="display:flex; align-items:center; gap:10px; padding:9px 14px; font-size:13.5px; cursor:pointer; ${i<arr.length-1?'border-bottom:1px solid var(--rule);':''}">
+            <input type="checkbox" class="asc-class-cb" id="asc-c-${c.id}" data-n="${n}" onchange="ascSyncSelectAll()" style="flex-shrink:0; width:16px; height:16px;"/>
+            <span style="flex:1;">${c.name} <span style="color:var(--slate); font-size:11.5px;">— ${c.learningArea}</span></span>
+            <span class="mono" style="color:var(--slate); font-size:12px; white-space:nowrap;">${n} student${n===1?'':'s'}</span>
+          </label>`; }).join('')}
         </div>
+        <div id="asc-total" class="ac-count" style="display:inline-block; margin-top:10px;">Selected: 0 classes · 0 students registered</div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="saveAssignSubjClass('${id}')">Save</button></div>
   `);
 }
+function ascStudentCount(c){ return state.students.filter(s=>s.class===c.name).length; }
+function ascUpdateTotal(){
+  const on = [...document.querySelectorAll('.asc-class-cb')].filter(cb=>cb.checked);
+  const n = on.reduce((a,cb)=>a+Number(cb.dataset.n||0), 0), el = document.getElementById('asc-total');
+  if(el) el.textContent = `Selected: ${on.length} class${on.length===1?'':'es'} · ${n} student${n===1?'':'s'} registered`;
+}
 function toggleAllAscClasses(checked){
   document.querySelectorAll('.asc-class-cb').forEach(cb=> cb.checked = checked);
+  ascUpdateTotal();
 }
 function ascSyncSelectAll(){
   const boxes = [...document.querySelectorAll('.asc-class-cb')];
   document.getElementById('asc-select-all').checked = boxes.length>0 && boxes.every(cb=>cb.checked);
+  ascUpdateTotal();
 }
 function saveAssignSubjClass(id){
   const u = state.users.find(x=>x.id===id);
   const subject = document.getElementById('asc-subject').value;
-  const classes = state.classes.filter(c=>document.getElementById('asc-c-'+c.id).checked).map(c=>c.name);
+  const classes = liveClasses().filter(c=>document.getElementById('asc-c-'+c.id).checked).map(c=>c.name);
   if(!classes.length){ toast('Select at least one class.', true); return; }
   u.assigned.push({subject, classes});
   closeModal(); toast(`${subject} assigned to ${u.name} for ${classes.join(', ')}.`);
