@@ -3063,7 +3063,7 @@ function uploadBulkScores(){
 
     const modeLabelOf = key => (ASSESSMENT_MODES.find(m=>m.key===key)||{}).label || key;
     const saved = [], rejected = [];
-    let skippedNoScore = 0;
+    let skippedNoScore = 0, differentOverall = 0;
 
     for(let i=headerIdx+1; i<rows.length; i++){
       const row = rows[i];
@@ -3110,7 +3110,7 @@ function uploadBulkScores(){
       if(!candidates.length && !reasons.length){ skippedNoScore++; continue; }
 
       const savedOveralls = (cls && subjKey) ? getAssessmentOveralls(cls.name, subjKey, sem) : {};
-      const pending = [];
+      const pending = [], ownMax = [];
       candidates.forEach(c=>{
         const label = modeLabelOf(c.key);
         const raw = Number(c.rawCell);
@@ -3120,9 +3120,6 @@ function uploadBulkScores(){
         if(isNaN(max) || max <= 0){
           if(known != null) max = known;
           else { reasons.push(`${label}: no overall score on the sheet and none saved in the system for this class, subject and semester.`); return; }
-        } else if(known != null && known !== max){
-          reasons.push(`${label}: overall score ${max} on the sheet differs from ${known} already saved in the system for this class, subject and semester.`);
-          return;
         }
         if(raw > max){ reasons.push(`${label}: score ${raw} is greater than its overall score ${max}.`); return; }
         pending.push({ key:c.key, raw, max });
@@ -3136,15 +3133,20 @@ function uploadBulkScores(){
       pending.forEach(p=>{
         setComponentScore(student, subjKey, cls.year, sem, p.key, p.raw);
         if(state.assessmentOveralls[okey][p.key] == null) state.assessmentOveralls[okey][p.key] = p.max;
+        // a different overall on the sheet is accepted: it is kept for this student and the percentage uses it
+        setComponentMax(student, subjKey, cls.year, sem, p.key, p.max, state.assessmentOveralls[okey][p.key]);
+        if(p.max !== state.assessmentOveralls[okey][p.key]) ownMax.push(`${modeLabelOf(p.key)} out of ${p.max}`);
       });
       const finalScore = recomputeFromComponents(student, subjKey, cls.year, sem, state.assessmentOveralls[okey]);
       if(finalScore != null) setScore(student, subjKey, cls.year, sem, Math.round(finalScore * 10) / 10);
+      if(ownMax.length) differentOverall++;
       saved.push({ rowNo, ref:student.assRefId, name:fullName(student), cls:cls.name, area:student.learningArea, modes:pending.map(p=>modeLabelOf(p.key)) });
     }
 
     renderCaptureSubject();
     const lines = [`${cols.isSystem ? 'File from this system' : 'File from another system'} — subject: ${subj.trim()}, ${sem==='s1'?'1st':'2nd'} semester.`];
     lines.push(`${saved.length} student(s) saved, ${rejected.length} row(s) rejected${skippedNoScore ? `, ${skippedNoScore} row(s) skipped (no score entered)` : ''}.`);
+    if(differentOverall) lines.push(`${differentOverall} student(s) were scored out of a different overall score from the class default. Their marks were accepted and graded as a percentage of the overall score on the sheet.`);
     if(saved.length && !rejected.length){
       showUploadReport('ok', 'Upload successful', lines, [], saved);
       toast(`Upload successful — scores saved for ${saved.length} student(s).`);
@@ -3183,7 +3185,7 @@ function downloadCapturedScores(){
     const meta = (s.scoreMeta && s.scoreMeta[subj] && s.scoreMeta[subj][year] && s.scoreMeta[subj][year][sem]) || {};
     const modeValues = ASSESSMENT_MODES.flatMap(m=>{
       const raw = getComponentScore(s, subj, year, sem, m.key);
-      const max = overalls[m.key];
+      const max = getComponentMax(s, subj, year, sem, m.key, overalls);
       return [raw!=null ? raw : '', max!=null ? max : ''];
     });
     rows.push([
@@ -3217,6 +3219,20 @@ function getComponentScore(student, subject, year, sem, modeKey){
   const bySem = byYear && byYear[sem];
   return bySem ? bySem[modeKey] : undefined;
 }
+/* Each student's component can carry its OWN overall (max) when a teacher's sheet used a different overall
+   score from the class default. It is kept inside components as "_max" so it saves with the scores. */
+function getComponentMax(student, subject, year, sem, modeKey, overalls){
+  const bySem = student && student.components && student.components[subject] && student.components[subject][year] && student.components[subject][year][sem];
+  const own = bySem && bySem._max && bySem._max[modeKey];
+  if(own != null && own > 0) return own;
+  return overalls ? overalls[modeKey] : null;
+}
+function setComponentMax(student, subject, year, sem, modeKey, max, classDefault){
+  const bySem = student.components[subject][year][sem];
+  if(max == null || max === classDefault){
+    if(bySem._max){ delete bySem._max[modeKey]; if(!Object.keys(bySem._max).length) delete bySem._max; }
+  } else { bySem._max = bySem._max || {}; bySem._max[modeKey] = max; }
+}
 function setComponentScore(student, subject, year, sem, modeKey, value){
   student.components = student.components || {};
   student.components[subject] = student.components[subject] || {};
@@ -3230,7 +3246,7 @@ function recomputeFromComponents(student, subject, year, sem, overalls){
   let total = 0, any = false;
   ASSESSMENT_MODES.forEach(mode=>{
     const raw = getComponentScore(student, subject, year, sem, mode.key);
-    const max = overalls ? overalls[mode.key] : null;
+    const max = getComponentMax(student, subject, year, sem, mode.key, overalls);
     if(raw!=null && max!=null && max>0){
       total += (raw / max) * mode.weight;
       any = true;
@@ -3439,8 +3455,9 @@ function suRefresh(){
     const sc = getScore(s, subj, year, sem);
     const modeCells = ASSESSMENT_MODES.map(m=>{
       const cur = getComponentScore(s, subj, year, sem, m.key);
-      const max = overalls[m.key];
-      return `<td><input type="number" min="0" ${max!=null?`max="${max}"`:''} id="cm-${m.key}-${s.id}" value="${cur!=null?cur:''}" style="width:70px; padding:6px 8px; border:1px solid var(--rule); border-radius:3px;"/></td>`;
+      const max = getComponentMax(s, subj, year, sem, m.key, overalls);
+      const own = max!=null && overalls[m.key]!=null && max!==overalls[m.key];
+      return `<td><input type="number" min="0" ${max!=null?`max="${max}"`:''} id="cm-${m.key}-${s.id}" value="${cur!=null?cur:''}" title="${own?'This student was scored out of '+max:''}" style="width:70px; padding:6px 8px; border:1px solid var(--rule); border-radius:3px;"/></td>`;
     }).join('');
     return `<tr>
       <td><code class="ref">${s.assRefId}</code></td><td>${fullName(s)}</td>
@@ -3459,7 +3476,7 @@ function correctMark(id, subj, sem, year){
     const input = document.getElementById(`cm-${mode.key}-${id}`);
     if(!input || input.value === '') continue;
     const v = Number(input.value);
-    const max = overalls[mode.key];
+    const max = getComponentMax(s, subj, year, sem, mode.key, overalls);
     if(isNaN(v) || v<0 || (max!=null && v>max)){
       toast(`${mode.label} must be a number between 0 and ${max!=null?max:'the overall score'}.`, true);
       return;
@@ -4089,14 +4106,14 @@ function buildTerminalReportHTML(s, clsName, sem, year, data){
     CA_KEYS.forEach(key=>{
       const mode = ASSESSMENT_MODES.find(m=>m.key===key);
       const raw = getComponentScore(s, d.subject, year, sem, key);
-      const max = overalls[key];
+      const max = getComponentMax(s, d.subject, year, sem, key, overalls);
       if(raw!=null && max!=null && max>0){ caTotal += (raw/max)*mode.weight; caAny = true; }
     });
     if(caAny) ca60 = caTotal;
     let exams40 = null;
     const examsMode = ASSESSMENT_MODES.find(m=>m.key==='exams');
     const examsRaw = getComponentScore(s, d.subject, year, sem, 'exams');
-    const examsMax = overalls['exams'];
+    const examsMax = getComponentMax(s, d.subject, year, sem, 'exams', overalls);
     if(examsRaw!=null && examsMax!=null && examsMax>0){ exams40 = (examsRaw/examsMax)*examsMode.weight; }
     return `<tr>
       <td style="font-weight:600;">${d.subject.toUpperCase()}</td>
