@@ -608,11 +608,11 @@ const MASTER_SUBJECTS = [
   'Physics','Computing','Computer Science','ICT','French','Twi','History','Government','Christian Religious Studies (CRS)',
   'Literature in English','Music','Economics','Geography','Accounting','Business Management','Art and Design Foundation',
   'Art and Design Studio','Design and Communication Technology','Clothing and Textiles','Food and Nutrition',
-  'Management in Living','Agriculture','Physical Education'
+  'Management in Living','Agriculture','Physical Education & Health'
 ];
 
 const SUBJECT_POOL = {
-  CORE: ['English Language','Mathematics','General Science','Social Studies','Physical Education'],
+  CORE: ['English Language','Mathematics','General Science','Social Studies','Physical Education & Health'],
   'SCIENCE': ['Biology','Chemistry','Physics','Additional Mathematics','Computing'],
   'GENERAL ARTS': ['Government','History','Geography','Literature in English','French','Economics','Christian Religious Studies (CRS)'],
   'BUSINESS': ['Accounting','Business Management','Economics','ICT'],
@@ -2524,7 +2524,7 @@ function esUpdateSubjectsPreview(studentId){
   const box = document.getElementById('es-subjects');
   if(box) box.innerHTML = esSubjectsHTML(studentId, subjects);
 }
-const KNOWN_SUBJECT_CODES = { 'History':225, 'Social Studies':226, 'Mathematics':404, 'English Language':422, 'French':423, 'Literature in English':425, 'Twi(Akuapem)':439, 'General Science':540, 'Physical Education':542 };
+const KNOWN_SUBJECT_CODES = { 'History':225, 'Social Studies':226, 'Mathematics':404, 'English Language':422, 'French':423, 'Literature in English':425, 'Twi(Akuapem)':439, 'General Science':540, 'Physical Education & Health':542 };
 function subjectCode(name){
   if(KNOWN_SUBJECT_CODES[name]) return KNOWN_SUBJECT_CODES[name];
   let h = 0; for(const ch of String(name)) h = (h*31 + ch.charCodeAt(0)) % 900;
