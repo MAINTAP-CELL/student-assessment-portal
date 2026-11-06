@@ -3970,6 +3970,7 @@ function buildClassSummaryHTML(className, year, sem){
           <tbody>${bodyRows}</tbody>
         </table>
       </div>
+      <div class="report-powered">Powered by: VISION TECH</div>
     </div>
   `;
 }
@@ -4988,7 +4989,8 @@ function renderAwards(){
       <td class="mono">${r.res ? r.res.winners.map(w=>`<div>${w.st.assRefId}</div>`).join('') : ''}</td>
       <td>${r.res ? r.res.winners.map(w=>`<div>${w.st.class}</div>`).join('') : ''}</td>
       <td class="mono">${r.res ? r.res.score.toFixed(1) : ''}</td></tr>`).join('')}
-    </tbody></table>`;
+    </tbody></table>
+    <div class="report-powered">Powered by: VISION TECH</div>`;
 }
 function downloadAwards(){
   if(typeof XLSX === 'undefined'){ toast('Spreadsheet engine failed to load — check your connection.', true); return; }
