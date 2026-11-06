@@ -1450,7 +1450,7 @@ RENDER.register = function(){
         <div class="field"><label>Date of Birth *</label><input id="rs-dob" type="date"/></div>
       </div>
       <div class="grid2">
-        <div class="field"><label>House</label><input id="rs-house" placeholder="e.g. HOUSE2"/></div>
+        <div class="field"><label>House</label><span id="rs-house-wrap">${houseSelectHTML('rs-house','')}</span></div>
         <div class="field"><label>Status</label><select id="rs-residency"><option>BOARDING</option><option>DAY</option></select></div>
       </div>
       <div class="grid2">
@@ -1526,7 +1526,8 @@ function loadStudentForEdit(){
     badge.style.display = 'none';
     refRow.style.display = 'none';
     submitBtn.textContent = 'Submit registration';
-    ['rs-sur','rs-first','rs-other','rs-nat','rs-house','rs-guardian','rs-phone','rs-addr','rs-att-present','rs-att-out','rs-house-master'].forEach(f=> document.getElementById(f).value='');
+    ['rs-sur','rs-first','rs-other','rs-nat','rs-guardian','rs-phone','rs-addr','rs-att-present','rs-att-out','rs-house-master'].forEach(f=> document.getElementById(f).value='');
+    setHouseSelect('rs-house','');
     pendingHmSig = null; document.getElementById('rs-hm-sig-prev').innerHTML = hmSigPreviewHTML(null);
     document.getElementById('rs-gender').value = 'MALE';
     document.getElementById('rs-dob').value = '';
@@ -1553,7 +1554,7 @@ function loadStudentForEdit(){
   document.getElementById('rs-nat').value = s.natId==='—' ? '' : (s.natId||'');
   document.getElementById('rs-gender').value = s.gender;
   document.getElementById('rs-dob').value = s.dob || '';
-  document.getElementById('rs-house').value = s.house || '';
+  setHouseSelect('rs-house', s.house || '');
   document.getElementById('rs-residency').value = s.residency || 'BOARDING';
   document.getElementById('rs-guardian').value = s.guardianName==='—' ? '' : s.guardianName;
   document.getElementById('rs-rel').value = ['Father','Mother','Guardian'].includes(s.relationship) ? s.relationship : 'Father';
@@ -1664,6 +1665,37 @@ function submitRegister(){
   navigate('manageStudents');
 }
 function stripTags(v){ return String(v==null?'':v).replace(/[<>]/g,''); }
+/* ---------------- Houses: HOUSE 1-5 by default; new house names can be created at registration ---------------- */
+const DEFAULT_HOUSES = ['HOUSE 1','HOUSE 2','HOUSE 3','HOUSE 4','HOUSE 5'];
+const extraHouses = [];
+function allHouses(){
+  const set = new Set(DEFAULT_HOUSES);
+  (state.students||[]).forEach(st=>{ if(st.house && String(st.house).trim()) set.add(String(st.house).trim()); });
+  extraHouses.forEach(h=>set.add(h));
+  return [...set];
+}
+function houseSelectHTML(id, selected){
+  const sel = String(selected||'').trim();
+  const list = allHouses(); if(sel && !list.includes(sel)) list.push(sel);
+  return `<select id="${id}" onchange="houseChanged('${id}')"><option value="">*** SELECT HOUSE ***</option>${list.map(h=>`<option value="${h.replace(/"/g,'&quot;')}" ${h===sel?'selected':''}>${h}</option>`).join('')}<option value="__new__">+ Create a new house…</option></select>`;
+}
+function houseChanged(id){
+  const el = document.getElementById(id);
+  if(!el || el.value!=='__new__') return;
+  const name = (prompt('Enter the name of the new house:')||'').trim().toUpperCase();
+  if(!name){ el.value=''; return; }
+  if(!allHouses().includes(name)) extraHouses.push(name);
+  setHouseSelect(id, name);
+}
+function setHouseSelect(id, value){
+  const el = document.getElementById(id); if(!el) return;
+  const v = String(value||'').trim();
+  if(v && ![...el.options].some(o=>o.value===v)){
+    const o = document.createElement('option'); o.value = v; o.textContent = v;
+    el.insertBefore(o, el.options[el.options.length-1]);
+  }
+  el.value = v;
+}
 function val(id){ const el=document.getElementById(id); return el ? stripTags(el.value).trim() : ''; }
 
 /* ---------------- Bulk Student Registration (Excel) ---------------- */
@@ -2451,7 +2483,7 @@ function openEditStudent(id){
         <div class="field"><label>Date of Birth</label><input id="es-dob" type="date" value="${s.dob||''}"/></div>
       </div>
       <div class="grid2">
-        <div class="field"><label>House</label><input id="es-house" value="${s.house||''}" placeholder="e.g. HOUSE2"/></div>
+        <div class="field"><label>House</label>${houseSelectHTML('es-house', s.house)}</div>
         <div class="field"><label>Boarding Status</label><select id="es-residency">
           <option value="BOARDING" ${s.residency==='BOARDING'?'selected':''}>BOARDING</option>
           <option value="DAY" ${s.residency==='DAY'?'selected':''}>DAY</option>
