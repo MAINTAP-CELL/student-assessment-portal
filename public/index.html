@@ -455,6 +455,30 @@
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* Every spreadsheet downloaded from the system carries "Powered by: VISION TECH" */
+(function(){
+  if(typeof XLSX === 'undefined') return;
+  const BRAND = 'Powered by: VISION TECH';
+  function brand(wb, withRow){
+    try{
+      wb.Props = Object.assign({}, wb.Props, { Company:'VISION TECH', Creator:'VISION TECH', Author:'VISION TECH' });
+      if(!withRow) return;
+      wb.SheetNames.forEach(n=>{
+        const ws = wb.Sheets[n]; if(!ws || !ws['!ref']) return;
+        const r = XLSX.utils.decode_range(ws['!ref']);
+        const addr = XLSX.utils.encode_cell({ r:r.e.r + 2, c:0 });
+        ws[addr] = { t:'s', v:BRAND };
+        r.e.r += 2; ws['!ref'] = XLSX.utils.encode_range(r);
+      });
+    }catch(e){}
+  }
+  const w = XLSX.writeFile, x = XLSX.write;
+  XLSX.writeFile = function(wb, name, o){ brand(wb, !/template/i.test(String(name))); return w.call(XLSX, wb, name, o); };
+  XLSX.write = function(wb, o){ brand(wb, false); return x.call(XLSX, wb, o); };
+})();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
@@ -1817,7 +1841,7 @@ function uploadBulkStudents(){
 
     for(let i=1; i<rows.length; i++){
       const row = rows[i];
-      if(!row || row.every(isBlankCell)) continue;
+      if(!row || row.every(isBlankCell) || /^powered by/i.test(String(row[0]||'').trim())) continue;
       const rowNo = i + 1;
       const ref = cell(row, C.ref);
       const surname = cell(row, C.surname);
@@ -3100,7 +3124,7 @@ function uploadBulkScores(){
 
     for(let i=headerIdx+1; i<rows.length; i++){
       const row = rows[i];
-      if(!row || row.every(isBlankCell)) continue;
+      if(!row || row.every(isBlankCell) || /^powered by/i.test(String(row[0]||'').trim())) continue;
       const rowNo = i + 1;
       const refRaw = isBlankCell(row[cols.ref]) ? '' : String(row[cols.ref]).trim();
       const nameRaw = isBlankCell(row[cols.name]) ? '' : String(row[cols.name]).trim();
