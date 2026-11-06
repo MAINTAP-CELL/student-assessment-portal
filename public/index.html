@@ -1228,7 +1228,30 @@ function confirmPrint(orientation){
   document.body.classList.toggle('print-portrait', orientation==='portrait');
   document.body.classList.toggle('print-landscape', orientation==='landscape');
   closeModal();
+  const oldTitle = document.title;
+  const t = printFileTitle();
+  if(t) document.title = t;
+  window.addEventListener('afterprint', ()=>{ document.title = oldTitle; }, { once:true });
   setTimeout(()=> window.print(), 150);
+}
+/* The browser uses the page title as the default PDF file name: student name + class for a transcript / terminal report */
+function printFileTitle(){
+  try{
+    const pick = (boxId, cls, selId, classId, suffix)=>{
+      const n = document.querySelectorAll('#'+boxId+' .'+cls).length;
+      if(!n) return null;
+      if(n === 1){
+        const sel = document.getElementById(selId);
+        const st = sel ? findStudent(sel.value) : null;
+        if(st) return `${fullName(st)} - ${st.class}`;
+        return null;
+      }
+      const c = document.getElementById(classId);
+      return c && c.value ? `${c.value} - ${suffix}` : null;
+    };
+    return pick('tr-box','transcript','tr-select','tr-class','Transcripts')
+        || pick('trm-box','terminal-report','trm-student','trm-class','Terminal Reports');
+  }catch(e){ return null; }
 }
 /* Class Summary Report is always landscape (too wide for portrait) and uses a fit-to-width table layout */
 function printLandscapeOnly(){
