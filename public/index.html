@@ -554,6 +554,7 @@
       <div class="nav-item" data-view="studentRanking" data-admin-only="1"><span class="dot"></span>Student Performance Ranking</div>
       <div class="nav-item" data-view="remedial" data-admin-only="1"><span class="dot"></span>Remedial/Intervention Students</div>
       <div class="nav-item" data-view="schoolMonitor" data-admin-only="1"><span class="dot"></span>School Monitor</div>
+      <div class="nav-item" data-view="achievers" data-admin-only="1"><span class="dot"></span>Achievers</div>
       <div class="nav-item" data-view="awards" data-admin-only="1"><span class="dot"></span>Academic Awards</div>
       <div class="nav-item" data-view="terminalReport" data-teacher-gate="1"><span class="dot"></span>SHS Terminal Report</div>
     </div>
@@ -1401,15 +1402,6 @@ RENDER.dashboard = function(){
         </div>
       </div>
     </div>
-    ${state.currentUser.role==='admin' ? `
-    <div class="card" style="padding:22px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; background:linear-gradient(135deg, var(--sage-bg), var(--paper));">
-      <div>
-        <h3 class="serif" style="margin:0 0 6px; font-size:16px;">🏆 Achievers</h3>
-        <p style="margin:0; font-size:13px; color:var(--slate); max-width:56ch;">Students with A1 in at least 2 core subjects (Mathematics, English Language, General Science, Social Studies) and at least 3 elective subjects, generated from the Class Summary data across every class.</p>
-      </div>
-      <button class="btn btn-primary" onclick="navigate('achievers')">View Achievers →</button>
-    </div>
-    ` : ''}
     <div class="card" style="padding:22px 24px; margin-bottom:20px;">
       <h3 class="serif" style="margin:0 0 14px; font-size:16px;">Learning Areas in Session</h3>
       ${learningAreas.map(area=>{
@@ -4635,6 +4627,7 @@ RENDER.achievers = function(){
       </div>
       <div class="field"><label>Semester</label><select id="ach-sem" onchange="renderAchievers()"><option value="s1">ONE (1)</option><option value="s2">TWO (2)</option></select></div>
       <button class="btn btn-ghost" onclick="smartPrint()">Print / Save as PDF</button>
+      <button class="btn btn-primary" onclick="showAchieverCertificates()">🎓 Achievers' Certificates</button>
     </div>
     <div id="ach-box"></div>
   `;
@@ -4673,7 +4666,7 @@ function renderAchievers(){
         <table>
           <thead><tr>
             <th>SN</th><th>STUDENT NAME</th><th>ASS'T REF ID</th><th>CLASS</th>
-            <th>CORE A1 SUBJECTS</th><th>ELECTIVE A1 SUBJECTS</th><th>TOTALS SCORE</th><th>AGGREGATE</th><th>OVERALL POSITION</th>
+            <th>CORE A1 SUBJECTS</th><th>ELECTIVE A1 SUBJECTS</th><th>TOTALS SCORE</th><th>AGGREGATE</th><th>OVERALL POSITION</th><th>CERTIFICATE</th>
           </tr></thead>
           <tbody>
             ${achievers.map((a,idx)=>`<tr>
@@ -4686,6 +4679,7 @@ function renderAchievers(){
               <td class="mono" style="text-align:center; font-weight:700;">${Math.round(a.totalsScore)}</td>
               <td class="mono" style="text-align:center; font-weight:700;">${a.aggregate!=null ? a.aggregate : '—'}</td>
               <td class="mono" style="text-align:center;">${a.overallPosition}</td>
+              <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="showAchieverCertificates(${idx})">🎓</button></td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -4999,7 +4993,7 @@ RENDER.awards = function(){
         </select></div>
       <button class="btn btn-ghost" onclick="smartPrint()">🖨 Print / Save as PDF</button>
       <button class="btn btn-gold" onclick="downloadAwards()">Download Awards ⬇</button>
-      <button class="btn btn-primary" onclick="showCertificates()">🎓 Achievers' Certificates</button>
+      <button class="btn btn-primary" onclick="showAwardCertificates()">🎓 Award Certificates</button>
     </div>
     <div class="card" style="overflow-x:auto;"><div id="aw-box"></div></div>
   `;
@@ -5021,7 +5015,7 @@ function renderAwards(){
       <td class="mono">${r.res ? r.res.winners.map(w=>`<div>${w.st.assRefId}</div>`).join('') : ''}</td>
       <td>${r.res ? r.res.winners.map(w=>`<div>${w.st.class}</div>`).join('') : ''}</td>
       <td class="mono">${r.res ? r.res.score.toFixed(1) : ''}</td>
-      <td>${r.res ? r.res.winners.map((w,wi)=>`<div><button class="btn btn-ghost btn-sm" onclick="showCertificates(${i},${wi})">🎓</button></div>`).join('') : ''}</td></tr>`).join('')}
+      <td>${r.res ? r.res.winners.map((w,wi)=>`<div><button class="btn btn-ghost btn-sm" onclick="showAwardCertificates(${i},${wi})">🎓</button></div>`).join('') : ''}</td></tr>`).join('')}
     </tbody></table>
     <div class="report-powered">Powered by: VISION TECH</div>`;
 }
@@ -5064,7 +5058,7 @@ function certSVG(st, label, form, cs){
     <g>${side}</g><g transform="translate(1080,0) scale(-1,1)">${side}</g>
     <image href="${crest}" x="195" y="28" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
     <image href="${crest}" x="745" y="28" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
-    <text x="540" y="92" text-anchor="middle" font-size="36" font-weight="900" fill="${G}" textLength="385" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
+    <text x="540" y="92" text-anchor="middle" font-size="38" font-weight="900" fill="${G}" textLength="405" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
     <text x="540" y="140" text-anchor="middle" font-size="30" font-weight="900" fill="#111" textLength="270" lengthAdjust="spacingAndGlyphs">ACHIEVERS CLUB</text>
     <line x1="355" x2="752" y1="165" y2="165" stroke="${G}" stroke-width="2"/>
     <polygon points="540,157 549,165 540,173 531,165" fill="${G}"/>
@@ -5076,54 +5070,115 @@ function certSVG(st, label, form, cs){
     <line x1="175" x2="905" y1="418" y2="418" stroke="${G}" stroke-width="2"/>
     <polygon points="175,413 180,418 175,423 170,418" fill="${G}"/><polygon points="905,413 910,418 905,423 900,418" fill="${G}"/>
     <text x="540" y="458" text-anchor="middle" font-size="26" font-weight="700" fill="${G}" letter-spacing="1">(FORM ${form} ${certEsc(String(st.class||'').toUpperCase())})</text>
-    <text x="540" y="488" text-anchor="middle" font-size="17" font-style="italic" font-weight="700" fill="#8a6a0c" letter-spacing="1">${certEsc(label.replace(/\s*\(FORM \d\)\s*$/,''))}</text>
+    ${label ? `<text x="540" y="488" text-anchor="middle" font-size="17" font-style="italic" font-weight="700" fill="#8a6a0c" letter-spacing="1">${certEsc(label)}</text>` : ''}
     <text x="540" y="523" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">FOR DISPLAYING ACADEMIC EXCELLENCE</text>
     <text x="540" y="551" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">IN THE ${certEsc(cs.sem)} SEMESTER OF THE ${certEsc(cs.year)} ACADEMIC YEAR</text>
-    ${sig(312,578,'PATRON',cs.patron)}${sig(757,578,'ASST. HEAD ADMIN.',cs.admin)}${sig(312,684,'ASST. HEAD ACADEMICS',cs.acad)}${sig(757,684,'HEADMASTER',cs.head)}
+    ${sig(312,586,'PATRON',cs.patron)}${sig(757,578,'ASST. HEAD ADMIN.',cs.admin)}${sig(312,684,'ASST. HEAD ACADEMICS',cs.acad)}${sig(757,684,'HEADMASTER',cs.head)}
     <polygon points="512,690 486,756 509,742 528,760 542,700" fill="${G}"/><polygon points="568,690 594,756 571,742 552,760 538,700" fill="${G}"/>
     ${burst}<circle cx="540" cy="640" r="48" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
     <polygon points="${star.join(' ')}" fill="url(#gold)"/>
   </svg>`;
 }
-/* rowIdx = a single award row, or undefined for every achiever; winnerIdx picks one winner when a row is tied */
-let certSel = { r:undefined, w:undefined };
-function showCertificates(rowIdx, winnerIdx){
-  certSel = { r:rowIdx, w:winnerIdx };
+
+/* Academic Awards certificate: a different design (navy & gold framed) that names the award category, the student and the class */
+function certAwardSVG(st, item, cs){
+  const N='#14284b', GOLD='#b8860b';
+  const crest = state.school.logo || SCHOOL_WATERMARK;
+  const name = certEsc(fullName(st).toUpperCase());
+  const nameSize = Math.max(26, Math.min(54, Math.floor(700/(Math.max(name.length,1)*0.74))));
+  const subj = String(item.label||'').replace(/\s*\(FORM \d\)\s*$/,'');
+  const title = item.kind==='Overall' ? 'OVERALL BEST STUDENT' : item.kind==='Department' ? 'BEST STUDENT — '+subj : 'BEST STUDENT IN '+subj;
+  const tSize = Math.max(22, Math.min(40, Math.floor(820/(title.length*0.78))));
+  const corner = (tx,ty,sx,sy)=>`<g transform="translate(${tx},${ty}) scale(${sx},${sy})"><path d="M0 0 H70 M0 0 V70 M14 14 H54 M14 14 V54" stroke="url(#g2)" stroke-width="3" fill="none"/><circle cx="14" cy="14" r="5" fill="${N}"/></g>`;
+  const sig = (x,role,who)=>`<line x1="${x-120}" x2="${x+120}" y1="650" y2="650" stroke="${N}" stroke-width="1.8"/>
+    <text x="${x}" y="671" text-anchor="middle" font-size="14" font-weight="700" fill="${N}" letter-spacing="1.5">${role}</text>
+    <text x="${x}" y="689" text-anchor="middle" font-size="14" fill="${N}">${certEsc(who)}</text>`;
+  let pts=[]; for(let i=0;i<40;i++){ const a=i*Math.PI/20, r=i%2?40:46; pts.push((540+r*Math.cos(a)).toFixed(1)+','+(664+r*Math.sin(a)).toFixed(1)); }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 760" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c766"/><stop offset=".5" stop-color="#b8860b"/><stop offset="1" stop-color="#e3be55"/></linearGradient>
+    <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1" fill="${N}" opacity=".08"/></pattern></defs>
+    <rect width="1080" height="760" fill="#fffdf6"/><rect width="1080" height="760" fill="url(#dots)"/>
+    <rect x="22" y="22" width="1036" height="716" fill="none" stroke="${N}" stroke-width="10"/>
+    <rect x="40" y="40" width="1000" height="680" fill="none" stroke="url(#g2)" stroke-width="3"/>
+    <rect x="50" y="50" width="980" height="660" fill="none" stroke="${N}" stroke-width="1.2"/>
+    ${corner(58,58,1,1)}${corner(1022,58,-1,1)}${corner(58,702,1,-1)}${corner(1022,702,-1,-1)}
+    <image href="${crest}" x="330" y="190" width="420" height="420" opacity=".06" preserveAspectRatio="xMidYMid meet"/>
+    <image href="${crest}" x="480" y="64" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>
+    <text x="540" y="212" text-anchor="middle" font-size="30" font-weight="900" fill="${N}" letter-spacing="3" textLength="620" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
+    <text x="540" y="276" text-anchor="middle" font-size="54" font-weight="900" fill="${GOLD}" letter-spacing="4" textLength="760" lengthAdjust="spacingAndGlyphs">CERTIFICATE OF AWARD</text>
+    <line x1="260" x2="820" y1="296" y2="296" stroke="url(#g2)" stroke-width="3"/><polygon points="540,288 550,296 540,304 530,296" fill="${N}"/>
+    <text x="540" y="336" text-anchor="middle" font-size="19" font-style="italic" fill="${N}" letter-spacing="2">This award is proudly presented to</text>
+    <text x="540" y="406" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="${N}" letter-spacing="3">${name}</text>
+    <line x1="210" x2="870" y1="426" y2="426" stroke="${N}" stroke-width="1.8"/>
+    <text x="540" y="462" text-anchor="middle" font-size="24" font-weight="700" fill="${GOLD}" letter-spacing="2">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
+    <text x="540" y="505" text-anchor="middle" font-size="18" font-style="italic" fill="${N}" letter-spacing="2">in recognition of outstanding performance as the</text>
+    <rect x="150" y="522" width="780" height="62" rx="4" fill="${N}"/><rect x="156" y="528" width="768" height="50" rx="2" fill="none" stroke="url(#g2)" stroke-width="2"/>
+    <text x="540" y="565" text-anchor="middle" font-size="${tSize}" font-weight="900" fill="#f5deb0" letter-spacing="2">${certEsc(title)}</text>
+    <text x="540" y="609" text-anchor="middle" font-size="17" fill="${N}" letter-spacing="2">${certEsc(cs.sem)} SEMESTER, ${certEsc(cs.year)} ACADEMIC YEAR</text>
+    ${sig(250,'HEADMASTER',cs.head)}${sig(830,'ASST. HEAD ACADEMICS',cs.acad)}
+    <polygon points="${pts.join(' ')}" fill="url(#g2)"/><circle cx="540" cy="664" r="33" fill="${N}" stroke="#f5deb0" stroke-width="2"/>
+    <text x="540" y="674" text-anchor="middle" font-size="28" fill="#f5deb0">★</text>
+  </svg>`;
+}
+let certCtx = null;
+function certItemsHTML(){
   const cs = certSettings();
-  const rows = awardsForSelection();
-  const items = [];
-  rows.forEach((r,i)=>{
-    if(!r.res) return;
-    if(rowIdx!=null && rowIdx!==i) return;
-    r.res.winners.forEach((w,wi)=>{ if(winnerIdx!=null && winnerIdx!==wi) return; items.push({ st:w.st, label:r.label, form:r.form }); });
-  });
-  const box = document.getElementById('aw-box');
-  if(!items.length){ toast('No achievers yet — capture scores first.', true); return; }
-  box.innerHTML = `
+  return certCtx.items.map(it=>`<div class="cert-sheet">${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
+}
+function openCertViewer(boxId, items, kind, backFn){
+  if(!items.length){ toast('No students to print certificates for yet.', true); return; }
+  certCtx = { boxId, items, kind, backFn };
+  const cs = certSettings();
+  const single = items.length===1;
+  const showFull = kind==='award' ? '' : '';
+  document.getElementById(boxId).innerHTML = `
     <div class="toolbar cert-bar" style="flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
       <div class="field"><label>Semester</label><select id="ct-sem"><option ${cs.sem==='FIRST'?'selected':''}>FIRST</option><option ${cs.sem==='SECOND'?'selected':''}>SECOND</option></select></div>
       <div class="field"><label>Academic year</label><input id="ct-year" value="${certEsc(cs.year)}" style="width:110px;"/></div>
-      <div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
-      <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>
+      ${kind==='award' ? '' : `<div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
+      <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>`}
       <div class="field"><label>Asst. Head Academics</label><input id="ct-acad" value="${certEsc(cs.acad)}"/></div>
       <div class="field"><label>Headmaster</label><input id="ct-head" value="${certEsc(cs.head)}"/></div>
-      <button class="btn btn-ghost" onclick="certRefresh(${rowIdx==null?'null':rowIdx},${winnerIdx==null?'null':winnerIdx})">Apply names</button>
-      <button class="btn btn-gold" onclick="printCertificates(${items.length===1 ? `'${certEsc(fullName(items[0].st)).replace(/'/g,'')} - Certificate'` : `'Achievers Certificates'`})">⬇ Download / Print (${items.length})</button>
-      <button class="btn btn-ghost" onclick="renderAwards()">← Back to awards</button>
+      <button class="btn btn-ghost" onclick="certRefresh()">Apply</button>
+      <button class="btn btn-gold" onclick="printCertificates()">⬇ Download / Print (${items.length})</button>
+      <button class="btn btn-ghost" onclick="certBack()">← Back</button>
     </div>
-    <div id="cert-pages">${items.map(it=>`<div class="cert-sheet">${certSVG(it.st, it.label, it.form, cs)}</div>`).join('')}</div>`;
+    <div id="cert-pages">${certItemsHTML()}</div>`;
 }
-function certRefresh(rowIdx, winnerIdx){ certSettingsFromForm(); showCertificates(rowIdx==null?undefined:rowIdx, winnerIdx==null?undefined:winnerIdx); }
-function printCertificates(title){
-  certSettingsFromForm();
+function certRefresh(){ certSettingsFromForm(); const p = document.getElementById('cert-pages'); if(p) p.innerHTML = certItemsHTML(); }
+function certBack(){ if(certCtx && certCtx.backFn) certCtx.backFn(); }
+function printCertificates(){
+  certRefresh();
   let styleEl = document.getElementById('dynamic-page-size');
   if(!styleEl){ styleEl = document.createElement('style'); styleEl.id='dynamic-page-size'; document.head.appendChild(styleEl); }
   styleEl.textContent = '@page{ size: A4 landscape; margin: 0; }';
-  const old = document.title; document.title = title;
+  const old = document.title;
+  document.title = certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
   document.body.classList.add('print-certs');
   window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-certs'); document.title = old; }, { once:true });
-  showCertificates(certSel.r, certSel.w);
   setTimeout(()=> window.print(), 200);
+}
+/* Academic Awards: rowIdx = one award row (winnerIdx = one winner), or none = every award winner */
+function showAwardCertificates(rowIdx, winnerIdx){
+  const rows = awardsForSelection(), items = [];
+  rows.forEach((r,i)=>{
+    if(!r.res || (rowIdx!=null && rowIdx!==i)) return;
+    r.res.winners.forEach((w,wi)=>{ if(winnerIdx!=null && winnerIdx!==wi) return; items.push({ st:w.st, label:r.label, kind:r.kind, form:r.form }); });
+  });
+  openCertViewer('aw-box', items, 'award', ()=>renderAwards());
+}
+/* Achievers: certificate in the Achievers Club design for each achiever (idx = just one) */
+function showAchieverCertificates(idx){
+  const year = document.getElementById('ach-year').value, sem = document.getElementById('ach-sem').value;
+  const cs = certSettings(); try{ localStorage.setItem('stp-cert-settings', JSON.stringify(Object.assign({}, cs, { sem: sem==='s1'?'FIRST':'SECOND' }))); }catch(e){}
+  const list = computeAchievers(year, sem), items = [];
+  list.forEach((a,i)=>{
+    if(idx!=null && idx!==i) return;
+    const c = state.classes.find(x=>x.name===a.cls);
+    const form = c ? (String(c.year).match(/\d+/)||[1])[0] : 1;
+    items.push({ st:a.student, form });
+  });
+  openCertViewer('ach-box', items, 'achiever', ()=>renderAchievers());
 }
 function downloadAwards(){
   if(typeof XLSX === 'undefined'){ toast('Spreadsheet engine failed to load — check your connection.', true); return; }
