@@ -188,6 +188,14 @@
   .site-footer .sf-link{ color:#0a96ff; }
   .site-footer .sf-right{ text-align:right; }
   @media print{ .site-footer{ display:none !important; } }
+  .cert-sheet{ width:100%; max-width:1000px; aspect-ratio:297/210; margin:0 auto 18px; box-shadow:0 2px 12px rgba(0,0,0,.25); background:#fff; }
+  .cert-sheet svg{ width:100%; height:100%; display:block; }
+  @media print{
+    body.print-certs .cert-bar{ display:none !important; }
+    body.print-certs .card{ padding:0 !important; border:0 !important; box-shadow:none !important; }
+    body.print-certs .cert-sheet{ width:297mm; height:209.5mm; max-width:none; margin:0; box-shadow:none; page-break-after:always; break-after:page; overflow:hidden; }
+    body.print-certs .cert-sheet:last-child{ page-break-after:auto; break-after:auto; }
+  }
   .report-powered{ text-align:center; font-size:10.5px; font-weight:600; letter-spacing:.6px; color:#555; margin-top:12px; padding-top:6px; border-top:1px solid #ccc; }
   .page-head{ margin-bottom:22px; }
   .page-head h1{ font-size:24px; margin:0 0 6px; }
@@ -4991,6 +4999,7 @@ RENDER.awards = function(){
         </select></div>
       <button class="btn btn-ghost" onclick="smartPrint()">🖨 Print / Save as PDF</button>
       <button class="btn btn-gold" onclick="downloadAwards()">Download Awards ⬇</button>
+      <button class="btn btn-primary" onclick="showCertificates()">🎓 Achievers' Certificates</button>
     </div>
     <div class="card" style="overflow-x:auto;"><div id="aw-box"></div></div>
   `;
@@ -5007,13 +5016,114 @@ function renderAwards(){
       <div style="font-weight:700; font-size:14px; margin-top:2px;">OVER ALL BEST STUDENT (DEPARTMENT &amp; SUBJECT)</div>
       <div style="font-size:13px; color:var(--slate);">ACADEMIC AWARDS — ${won} of ${rows.length} categories awarded</div>
     </div>
-    <table><thead><tr><th>#</th><th>Award Category</th><th>Winner</th><th>Ass't Ref ID</th><th>Class</th><th>Score</th></tr></thead><tbody>
+    <table><thead><tr><th>#</th><th>Award Category</th><th>Winner</th><th>Ass't Ref ID</th><th>Class</th><th>Score</th><th>Certificate</th></tr></thead><tbody>
     ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${r.label}</b></td><td>${cell(r)}</td>
       <td class="mono">${r.res ? r.res.winners.map(w=>`<div>${w.st.assRefId}</div>`).join('') : ''}</td>
       <td>${r.res ? r.res.winners.map(w=>`<div>${w.st.class}</div>`).join('') : ''}</td>
-      <td class="mono">${r.res ? r.res.score.toFixed(1) : ''}</td></tr>`).join('')}
+      <td class="mono">${r.res ? r.res.score.toFixed(1) : ''}</td>
+      <td>${r.res ? r.res.winners.map((w,wi)=>`<div><button class="btn btn-ghost btn-sm" onclick="showCertificates(${i},${wi})">🎓</button></div>`).join('') : ''}</td></tr>`).join('')}
     </tbody></table>
     <div class="report-powered">Powered by: VISION TECH</div>`;
+}
+/* ---------------- Achievers' Certificates ---------------- */
+const CERT_DEFAULTS = { year:'2025/2026', sem:'FIRST', patron:'EBENEZER YEBOAH', admin:'MRS. EVELYN O. DUAH', acad:'MR. EYRAM K. GBEDEMAH', head:'MR. ISAAC ADDO' };
+function certSettings(){
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem('stp-cert-settings')||'{}') || {}; }catch(e){}
+  return Object.assign({}, CERT_DEFAULTS, saved);
+}
+function certSettingsFromForm(){
+  const g = id=>{ const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+  const c = certSettings();
+  const v = { year:g('ct-year')||c.year, sem:g('ct-sem')||c.sem, patron:g('ct-patron')||c.patron, admin:g('ct-admin')||c.admin, acad:g('ct-acad')||c.acad, head:g('ct-head')||c.head };
+  try{ localStorage.setItem('stp-cert-settings', JSON.stringify(v)); }catch(e){}
+  return v;
+}
+function certEsc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function certSVG(st, label, form, cs){
+  const G='#12482a', GOLD='#d4a017';
+  const name = certEsc(fullName(st).toUpperCase());
+  const nameSize = Math.max(26, Math.min(52, Math.floor(660/(Math.max(name.length,1)*0.74))));
+  const crest = state.school.logo || SCHOOL_WATERMARK;
+  const side = `
+    <path d="M0 0 H178 C130 120 60 215 62 390 C64 560 140 670 192 760 H0 Z" fill="${G}"/>
+    <path d="M178 0 C130 120 60 215 62 390 C64 560 140 670 192 760" fill="none" stroke="url(#gold)" stroke-width="8"/>
+    <path d="M198 0 C150 120 84 215 86 390 C88 560 158 670 210 760" fill="none" stroke="url(#gold)" stroke-width="3" opacity=".8"/>
+    <path d="M168 0 C120 120 50 215 52 390 C54 560 130 670 182 760" fill="none" stroke="#e9c75a" stroke-width="1.5" opacity=".7"/>`;
+  let burst = ''; const pts = [];
+  for(let i=0;i<48;i++){ const a = i*Math.PI/24, r = i%2 ? 56 : 64; pts.push((540+r*Math.cos(a)).toFixed(1)+','+(640+r*Math.sin(a)).toFixed(1)); }
+  burst = `<polygon points="${pts.join(' ')}" fill="url(#gold)"/>`;
+  let star=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?9:22; star.push((540+r*Math.cos(a)).toFixed(1)+','+(640+r*Math.sin(a)).toFixed(1)); }
+  const sig = (x,y,role,who)=>`<line x1="${x-103}" x2="${x+103}" y1="${y}" y2="${y}" stroke="${G}" stroke-width="2"/>
+    <text x="${x}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="700" fill="${G}" letter-spacing="1">${role}</text>
+    <text x="${x}" y="${y+37}" text-anchor="middle" font-size="13" font-weight="700" fill="${G}" letter-spacing=".5">${certEsc(who)}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 760" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d36b"/><stop offset=".5" stop-color="#c8940f"/><stop offset="1" stop-color="#f0cd5c"/></linearGradient></defs>
+    <rect width="1080" height="760" fill="#fbfbf8"/>
+    <image href="${crest}" x="330" y="190" width="420" height="420" opacity=".07" preserveAspectRatio="xMidYMid meet"/>
+    <g>${side}</g><g transform="translate(1080,0) scale(-1,1)">${side}</g>
+    <image href="${crest}" x="195" y="28" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
+    <image href="${crest}" x="745" y="28" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
+    <text x="540" y="92" text-anchor="middle" font-size="36" font-weight="900" fill="${G}" textLength="385" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
+    <text x="540" y="140" text-anchor="middle" font-size="30" font-weight="900" fill="#111" textLength="270" lengthAdjust="spacingAndGlyphs">ACHIEVERS CLUB</text>
+    <line x1="355" x2="752" y1="165" y2="165" stroke="${G}" stroke-width="2"/>
+    <polygon points="540,157 549,165 540,173 531,165" fill="${G}"/>
+    <text x="540" y="268" text-anchor="middle" font-size="96" font-weight="900" fill="${GOLD}" stroke="${G}" stroke-width="3" paint-order="stroke" textLength="620" lengthAdjust="spacingAndGlyphs">CERTIFICATE</text>
+    <polygon points="338,318 372,305 372,335 338,342 352,330" fill="${GOLD}"/><polygon points="742,318 708,305 708,335 742,342 728,330" fill="${GOLD}"/>
+    <rect x="360" y="292" width="360" height="40" rx="6" fill="${G}"/>
+    <text x="540" y="319" text-anchor="middle" font-size="20" font-weight="700" fill="#fff" letter-spacing="2">OF HONOUR PRESENTED TO</text>
+    <text x="540" y="398" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="#111" letter-spacing="3">${name}</text>
+    <line x1="175" x2="905" y1="418" y2="418" stroke="${G}" stroke-width="2"/>
+    <polygon points="175,413 180,418 175,423 170,418" fill="${G}"/><polygon points="905,413 910,418 905,423 900,418" fill="${G}"/>
+    <text x="540" y="458" text-anchor="middle" font-size="26" font-weight="700" fill="${G}" letter-spacing="1">(FORM ${form} ${certEsc(String(st.class||'').toUpperCase())})</text>
+    <text x="540" y="488" text-anchor="middle" font-size="17" font-style="italic" font-weight="700" fill="#8a6a0c" letter-spacing="1">${certEsc(label.replace(/\s*\(FORM \d\)\s*$/,''))}</text>
+    <text x="540" y="523" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">FOR DISPLAYING ACADEMIC EXCELLENCE</text>
+    <text x="540" y="551" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">IN THE ${certEsc(cs.sem)} SEMESTER OF THE ${certEsc(cs.year)} ACADEMIC YEAR</text>
+    ${sig(312,578,'PATRON',cs.patron)}${sig(757,578,'ASST. HEAD ADMIN.',cs.admin)}${sig(312,684,'ASST. HEAD ACADEMICS',cs.acad)}${sig(757,684,'HEADMASTER',cs.head)}
+    <polygon points="512,690 486,756 509,742 528,760 542,700" fill="${G}"/><polygon points="568,690 594,756 571,742 552,760 538,700" fill="${G}"/>
+    ${burst}<circle cx="540" cy="640" r="48" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
+    <polygon points="${star.join(' ')}" fill="url(#gold)"/>
+  </svg>`;
+}
+/* rowIdx = a single award row, or undefined for every achiever; winnerIdx picks one winner when a row is tied */
+let certSel = { r:undefined, w:undefined };
+function showCertificates(rowIdx, winnerIdx){
+  certSel = { r:rowIdx, w:winnerIdx };
+  const cs = certSettings();
+  const rows = awardsForSelection();
+  const items = [];
+  rows.forEach((r,i)=>{
+    if(!r.res) return;
+    if(rowIdx!=null && rowIdx!==i) return;
+    r.res.winners.forEach((w,wi)=>{ if(winnerIdx!=null && winnerIdx!==wi) return; items.push({ st:w.st, label:r.label, form:r.form }); });
+  });
+  const box = document.getElementById('aw-box');
+  if(!items.length){ toast('No achievers yet — capture scores first.', true); return; }
+  box.innerHTML = `
+    <div class="toolbar cert-bar" style="flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
+      <div class="field"><label>Semester</label><select id="ct-sem"><option ${cs.sem==='FIRST'?'selected':''}>FIRST</option><option ${cs.sem==='SECOND'?'selected':''}>SECOND</option></select></div>
+      <div class="field"><label>Academic year</label><input id="ct-year" value="${certEsc(cs.year)}" style="width:110px;"/></div>
+      <div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
+      <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>
+      <div class="field"><label>Asst. Head Academics</label><input id="ct-acad" value="${certEsc(cs.acad)}"/></div>
+      <div class="field"><label>Headmaster</label><input id="ct-head" value="${certEsc(cs.head)}"/></div>
+      <button class="btn btn-ghost" onclick="certRefresh(${rowIdx==null?'null':rowIdx},${winnerIdx==null?'null':winnerIdx})">Apply names</button>
+      <button class="btn btn-gold" onclick="printCertificates(${items.length===1 ? `'${certEsc(fullName(items[0].st)).replace(/'/g,'')} - Certificate'` : `'Achievers Certificates'`})">⬇ Download / Print (${items.length})</button>
+      <button class="btn btn-ghost" onclick="renderAwards()">← Back to awards</button>
+    </div>
+    <div id="cert-pages">${items.map(it=>`<div class="cert-sheet">${certSVG(it.st, it.label, it.form, cs)}</div>`).join('')}</div>`;
+}
+function certRefresh(rowIdx, winnerIdx){ certSettingsFromForm(); showCertificates(rowIdx==null?undefined:rowIdx, winnerIdx==null?undefined:winnerIdx); }
+function printCertificates(title){
+  certSettingsFromForm();
+  let styleEl = document.getElementById('dynamic-page-size');
+  if(!styleEl){ styleEl = document.createElement('style'); styleEl.id='dynamic-page-size'; document.head.appendChild(styleEl); }
+  styleEl.textContent = '@page{ size: A4 landscape; margin: 0; }';
+  const old = document.title; document.title = title;
+  document.body.classList.add('print-certs');
+  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-certs'); document.title = old; }, { once:true });
+  showCertificates(certSel.r, certSel.w);
+  setTimeout(()=> window.print(), 200);
 }
 function downloadAwards(){
   if(typeof XLSX === 'undefined'){ toast('Spreadsheet engine failed to load — check your connection.', true); return; }
