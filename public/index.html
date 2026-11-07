@@ -189,11 +189,13 @@
   .site-footer .sf-right{ text-align:right; }
   @media print{ .site-footer{ display:none !important; } }
   .cert-sheet{ width:100%; max-width:1000px; aspect-ratio:297/210; margin:0 auto 18px; box-shadow:0 2px 12px rgba(0,0,0,.25); background:#fff; }
+  .cert-sheet.cert-us{ aspect-ratio:11/8.5; }
   .cert-sheet svg{ width:100%; height:100%; display:block; }
   @media print{
     body.print-certs .cert-bar{ display:none !important; }
     body.print-certs .card{ padding:0 !important; border:0 !important; box-shadow:none !important; }
     body.print-certs .cert-sheet{ width:297mm; height:209.5mm; max-width:none; margin:0; box-shadow:none; page-break-after:always; break-after:page; overflow:hidden; }
+    body.print-certs .cert-sheet.cert-us{ width:11in; height:8.48in; aspect-ratio:auto; }
     body.print-certs .cert-sheet:last-child{ page-break-after:auto; break-after:auto; }
   }
   .report-powered{ text-align:center; font-size:10.5px; font-weight:600; letter-spacing:.6px; color:#555; margin-top:12px; padding-top:6px; border-top:1px solid #ccc; }
@@ -5082,48 +5084,45 @@ function certSVG(st, label, form, cs){
 
 /* Academic Awards certificate: a different design (navy & gold framed) that names the award category, the student and the class */
 function certAwardSVG(st, item, cs){
-  const N='#14284b', GOLD='#b8860b';
+  const G='#12482a', G2='#2e7d4f';
   const crest = state.school.logo || SCHOOL_WATERMARK;
   const name = certEsc(fullName(st).toUpperCase());
-  const nameSize = Math.max(26, Math.min(54, Math.floor(700/(Math.max(name.length,1)*0.74))));
+  const nameSize = Math.max(28, Math.min(56, Math.floor(720/(Math.max(name.length,1)*0.74))));
   const subj = String(item.label||'').replace(/\s*\(FORM \d\)\s*$/,'');
   const title = item.kind==='Overall' ? 'OVERALL BEST STUDENT' : item.kind==='Department' ? 'BEST STUDENT — '+subj : 'BEST STUDENT IN '+subj;
-  const tSize = Math.max(22, Math.min(40, Math.floor(820/(title.length*0.78))));
-  const corner = (tx,ty,sx,sy)=>`<g transform="translate(${tx},${ty}) scale(${sx},${sy})"><path d="M0 0 H70 M0 0 V70 M14 14 H54 M14 14 V54" stroke="url(#g2)" stroke-width="3" fill="none"/><circle cx="14" cy="14" r="5" fill="${N}"/></g>`;
-  const sig = (x,role,who)=>`<line x1="${x-120}" x2="${x+120}" y1="650" y2="650" stroke="${N}" stroke-width="1.8"/>
-    <text x="${x}" y="671" text-anchor="middle" font-size="14" font-weight="700" fill="${N}" letter-spacing="1.5">${role}</text>
-    <text x="${x}" y="689" text-anchor="middle" font-size="14" fill="${N}">${certEsc(who)}</text>`;
-  let pts=[]; for(let i=0;i<40;i++){ const a=i*Math.PI/20, r=i%2?40:46; pts.push((540+r*Math.cos(a)).toFixed(1)+','+(664+r*Math.sin(a)).toFixed(1)); }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 760" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
-    <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c766"/><stop offset=".5" stop-color="#b8860b"/><stop offset="1" stop-color="#e3be55"/></linearGradient>
-    <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1" fill="${N}" opacity=".08"/></pattern></defs>
-    <rect width="1080" height="760" fill="#fffdf6"/><rect width="1080" height="760" fill="url(#dots)"/>
-    <rect x="22" y="22" width="1036" height="716" fill="none" stroke="${N}" stroke-width="10"/>
-    <rect x="40" y="40" width="1000" height="680" fill="none" stroke="url(#g2)" stroke-width="3"/>
-    <rect x="50" y="50" width="980" height="660" fill="none" stroke="${N}" stroke-width="1.2"/>
-    ${corner(58,58,1,1)}${corner(1022,58,-1,1)}${corner(58,702,1,-1)}${corner(1022,702,-1,-1)}
-    <image href="${crest}" x="330" y="190" width="420" height="420" opacity=".06" preserveAspectRatio="xMidYMid meet"/>
-    <image href="${crest}" x="480" y="64" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>
-    <text x="540" y="212" text-anchor="middle" font-size="30" font-weight="900" fill="${N}" letter-spacing="3" textLength="620" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
-    <text x="540" y="276" text-anchor="middle" font-size="54" font-weight="900" fill="${GOLD}" letter-spacing="4" textLength="760" lengthAdjust="spacingAndGlyphs">CERTIFICATE OF AWARD</text>
-    <line x1="260" x2="820" y1="296" y2="296" stroke="url(#g2)" stroke-width="3"/><polygon points="540,288 550,296 540,304 530,296" fill="${N}"/>
-    <text x="540" y="336" text-anchor="middle" font-size="19" font-style="italic" fill="${N}" letter-spacing="2">This award is proudly presented to</text>
-    <text x="540" y="406" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="${N}" letter-spacing="3">${name}</text>
-    <line x1="210" x2="870" y1="426" y2="426" stroke="${N}" stroke-width="1.8"/>
-    <text x="540" y="462" text-anchor="middle" font-size="24" font-weight="700" fill="${GOLD}" letter-spacing="2">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
-    <text x="540" y="505" text-anchor="middle" font-size="18" font-style="italic" fill="${N}" letter-spacing="2">in recognition of outstanding performance as the</text>
-    <rect x="150" y="522" width="780" height="62" rx="4" fill="${N}"/><rect x="156" y="528" width="768" height="50" rx="2" fill="none" stroke="url(#g2)" stroke-width="2"/>
-    <text x="540" y="565" text-anchor="middle" font-size="${tSize}" font-weight="900" fill="#f5deb0" letter-spacing="2">${certEsc(title)}</text>
-    <text x="540" y="609" text-anchor="middle" font-size="17" fill="${N}" letter-spacing="2">${certEsc(cs.sem)} SEMESTER, ${certEsc(cs.year)} ACADEMIC YEAR</text>
-    ${sig(250,'HEADMASTER',cs.head)}${sig(830,'ASST. HEAD ACADEMICS',cs.acad)}
-    <polygon points="${pts.join(' ')}" fill="url(#g2)"/><circle cx="540" cy="664" r="33" fill="${N}" stroke="#f5deb0" stroke-width="2"/>
-    <text x="540" y="674" text-anchor="middle" font-size="28" fill="#f5deb0">★</text>
+  const tSize = Math.max(22, Math.min(40, Math.floor(840/(title.length*0.78))));
+  const corner = (tx,ty,sx,sy)=>`<g transform="translate(${tx},${ty}) scale(${sx},${sy})"><path d="M0 0 H86 M0 0 V86" stroke="${G}" stroke-width="4" fill="none"/><path d="M14 14 H70 M14 14 V70" stroke="${G2}" stroke-width="1.6" fill="none"/><path d="M26 26 Q50 26 50 50 Q26 50 26 26 Z" fill="none" stroke="${G}" stroke-width="2"/><circle cx="14" cy="14" r="5" fill="${G}"/></g>`;
+  const sig = (x,y,role,who)=>`<line x1="${x-125}" x2="${x+125}" y1="${y}" y2="${y}" stroke="${G}" stroke-width="1.8"/>
+    <text x="${x}" y="${y+21}" text-anchor="middle" font-size="14" font-weight="700" fill="${G}" letter-spacing="1.5">${role}</text>${who?`<text x="${x}" y="${y-8}" text-anchor="middle" font-size="16" font-style="italic" fill="#333">${certEsc(who)}</text>`:''}`;
+  let pts=[]; for(let i=0;i<48;i++){ const a=i*Math.PI/24, r=i%2?44:50; pts.push((550+r*Math.cos(a)).toFixed(1)+','+(694+r*Math.sin(a)).toFixed(1)); }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 850" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
+    <rect width="1100" height="850" fill="#ffffff"/>
+    <rect x="18" y="18" width="1064" height="814" fill="none" stroke="${G}" stroke-width="12"/>
+    <rect x="38" y="38" width="1024" height="774" fill="none" stroke="${G2}" stroke-width="2.5"/>
+    <rect x="48" y="48" width="1004" height="754" fill="none" stroke="${G}" stroke-width="1"/>
+    ${corner(56,56,1,1)}${corner(1044,56,-1,1)}${corner(56,794,1,-1)}${corner(1044,794,-1,-1)}
+    <image href="${crest}" x="325" y="215" width="450" height="450" opacity=".06" preserveAspectRatio="xMidYMid meet"/>
+    <image href="${crest}" x="490" y="62" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>
+    <text x="550" y="214" text-anchor="middle" font-size="30" font-weight="900" fill="${G}" letter-spacing="3" textLength="640" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
+    <text x="550" y="282" text-anchor="middle" font-size="52" font-weight="900" fill="${G}" letter-spacing="3" textLength="800" lengthAdjust="spacingAndGlyphs">CERTIFICATE OF ACHIEVEMENT</text>
+    <line x1="270" x2="830" y1="303" y2="303" stroke="${G2}" stroke-width="2"/><polygon points="550,295 560,303 550,311 540,303" fill="${G}"/>
+    <text x="550" y="346" text-anchor="middle" font-size="20" font-style="italic" fill="#333" letter-spacing="1.5">This certificate is proudly awarded to</text>
+    <text x="550" y="418" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="${G}" letter-spacing="3">${name}</text>
+    <line x1="200" x2="900" y1="438" y2="438" stroke="${G}" stroke-width="1.8"/>
+    <text x="550" y="476" text-anchor="middle" font-size="24" font-weight="700" fill="${G2}" letter-spacing="2">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
+    <text x="550" y="518" text-anchor="middle" font-size="19" font-style="italic" fill="#333" letter-spacing="1.5">in recognition of outstanding academic performance as the</text>
+    <rect x="150" y="536" width="800" height="64" rx="3" fill="${G}"/><rect x="157" y="543" width="786" height="50" rx="2" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="550" y="579" text-anchor="middle" font-size="${tSize}" font-weight="900" fill="#ffffff" letter-spacing="2">${certEsc(title)}</text>
+    <text x="550" y="632" text-anchor="middle" font-size="17" fill="${G}" letter-spacing="2">${certEsc(cs.sem)} SEMESTER, ${certEsc(cs.year)} ACADEMIC YEAR</text>
+    ${sig(235,738,'HEADMASTER',cs.head)}${sig(865,738,'ASST. HEAD ACADEMICS',cs.acad)}${sig(550,752,'DATE','')}
+    <polygon points="${pts.join(' ')}" fill="${G}"/><circle cx="550" cy="694" r="38" fill="#fff" stroke="${G2}" stroke-width="2"/><circle cx="550" cy="694" r="32" fill="${G}"/>
+    <text x="550" y="705" text-anchor="middle" font-size="30" fill="#fff">★</text>
   </svg>`;
 }
 let certCtx = null;
 function certItemsHTML(){
   const cs = certSettings();
-  return certCtx.items.map(it=>`<div class="cert-sheet">${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
+  return certCtx.items.map(it=>`<div class="cert-sheet${certCtx.kind==='award' ? ' cert-us' : ''}">${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
 }
 function openCertViewer(boxId, items, kind, backFn){
   if(!items.length){ toast('No students to print certificates for yet.', true); return; }
@@ -5151,7 +5150,7 @@ function printCertificates(){
   certRefresh();
   let styleEl = document.getElementById('dynamic-page-size');
   if(!styleEl){ styleEl = document.createElement('style'); styleEl.id='dynamic-page-size'; document.head.appendChild(styleEl); }
-  styleEl.textContent = '@page{ size: A4 landscape; margin: 0; }';
+  styleEl.textContent = certCtx.kind==='award' ? '@page{ size: 11in 8.5in; margin: 0; }' : '@page{ size: A4 landscape; margin: 0; }';
   const old = document.title;
   document.title = certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
   document.body.classList.add('print-certs');
