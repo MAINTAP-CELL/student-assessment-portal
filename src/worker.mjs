@@ -12,8 +12,14 @@ export default {
     let body = null; try { body = raw ? JSON.parse(raw) : null; } catch (e) {}
     const ip = req.headers.get('cf-connecting-ip') || 'unknown';
     const ctx = { db: d1Db(env.DB), env, secret: env.SESSION_SECRET, fetch, seed };
-    const r = await handle(ctx, { method: req.method, body, ip, rawLength: raw.length });
-    return new Response(JSON.stringify(r.body), { status: r.status, headers: HEADERS });
+    try {
+      const r = await handle(ctx, { method: req.method, body, ip, rawLength: raw.length });
+      return new Response(JSON.stringify(r.body), { status: r.status, headers: HEADERS });
+    } catch (e) {
+      // never leave the browser with a bare error page: say what happened so it can be reported
+      console.error('api error', e && e.message);
+      return new Response(JSON.stringify({ error: 'The server could not finish this request (' + String((e && e.message) || e).slice(0, 120) + '). Please try again; if it keeps happening, tell the administrator.' }), { status: 500, headers: HEADERS });
+    }
   },
   // Nightly backup (see [triggers] in wrangler.toml)
   async scheduled(event, env, ctx) {

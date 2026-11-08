@@ -344,32 +344,51 @@ async function saveStudents(ctx, principal, changes, rejected) {
   const shards = await loadAllShards(db);
   const where = new Map(); // id -> shard key
   shards.forEach(sh => sh.list.forEach(s => where.set(s.id, sh.key)));
-  for (const op of (changes.upsert || [])) {
-    if (!op || typeof op.id !== 'string') continue;
-    const oldKey = where.get(op.id);
-    const existing = oldKey ? (shards.find(x => x.key === oldKey).list.find(s => s.id === op.id)) : null;
-    // Re-read the live copy inside the write so concurrent saves are merged, not overwritten.
-    let result = null, newKey = oldKey;
-    if (oldKey) {
-      await update(db, oldKey, [], list => {
+  // All changed students of one class are written with ONE read + ONE write of that class's shard
+  // (an upload of a whole class used to rewrite the shard once per student, which is far too slow).
+  const ops = (changes.upsert || []).filter(op => op && typeof op.id === 'string');
+  const byShard = new Map(), fresh = [];
+  for (const op of ops) { const k = where.get(op.id); if (k) { if (!byShard.has(k)) byShard.set(k, []); byShard.get(k).push(op); } else fresh.push(op); }
+  const arrivals = new Map(); // shard key -> students that must be added there (new, or moved to another class)
+  const addArrival = (key, st) => { if (!arrivals.has(key)) arrivals.set(key, []); arrivals.get(key).push(st); };
+  const note = (op, r) => {
+    if (r && r.rejected) rejected.push({ id: op.id, reason: r.rejected });
+    else if (r && r.partial) rejected.push({ id: op.id, reason: 'some changes were not allowed' });
+  };
+  for (const [key, list0] of byShard) {
+    let results = [], moved = [];
+    await update(db, key, [], list => {
+      results = []; moved = [];
+      let changed = false;
+      for (const op of list0) {
         const i = list.findIndex(s => s.id === op.id);
-        if (i < 0) return undefined;
+        if (i < 0) continue;
         const r = applyStudentOp(list[i], op, principal);
-        result = r;
-        if (!r.student) return undefined;
-        if (shardKey(r.student.class) === oldKey) { list[i] = r.student; return list; }
-        newKey = shardKey(r.student.class); list.splice(i, 1); return list;
-      });
-      if (result && result.student && newKey !== oldKey) {
-        await update(db, newKey, [], list => { const j = list.findIndex(s => s.id === op.id); if (j >= 0) list[j] = result.student; else list.push(result.student); return list; });
-        where.set(op.id, newKey);
+        results.push([op, r]);
+        if (!r.student) continue;
+        if (shardKey(r.student.class) === key) { list[i] = r.student; changed = true; }
+        else { moved.push(r.student); list.splice(i, 1); changed = true; }
       }
-    } else {
-      const r = applyStudentOp(null, op, principal); result = r;
-      if (r.student) { newKey = shardKey(r.student.class); await update(db, newKey, [], list => { if (list.some(s => s.id === r.student.id)) return undefined; list.push(r.student); return list; }); where.set(op.id, newKey); }
-    }
-    if (result && result.rejected) rejected.push({ id: op.id, reason: result.rejected });
-    else if (result && result.partial) rejected.push({ id: op.id, reason: 'some changes were not allowed' });
+      return changed ? list : undefined;
+    });
+    results.forEach(([op, r]) => note(op, r));
+    moved.forEach(st => addArrival(shardKey(st.class), st));
+  }
+  for (const op of fresh) {
+    const r = applyStudentOp(null, op, principal);
+    note(op, r);
+    if (r.student) addArrival(shardKey(r.student.class), r.student);
+  }
+  for (const [key, studs] of arrivals) {
+    await update(db, key, [], list => {
+      let changed = false;
+      for (const st of studs) {
+        const j = list.findIndex(s => s.id === st.id);
+        if (j >= 0) { if (!fresh.some(o => o.id === st.id)) { list[j] = st; changed = true; } }
+        else { list.push(st); changed = true; }
+      }
+      return changed ? list : undefined;
+    });
   }
   for (const id of (changes.delete || [])) {
     if (!(principal.role === 'admin' || canDelete(principal.user))) { rejected.push({ id, reason: 'not allowed to delete students' }); continue; }

@@ -12,11 +12,13 @@ export function d1Db(D1) {
   return {
     async read(key) {
       for (let i = 0; i < 6; i++) {
-        const row = await D1.prepare('SELECT etag, n FROM kv WHERE k = ?').bind(key).first();
-        if (!row) return { value: null, etag: null };
-        const { results } = await D1.prepare('SELECT d FROM kv_part WHERE k = ? AND v = ? ORDER BY i').bind(key, row.etag).all();
-        if (results.length === row.n) return { value: JSON.parse(results.map(r => r.d).join('')), etag: row.etag };
-        // a newer save replaced the pieces between the two reads: try again
+        // one query: the main row joined with its current pieces
+        const { results } = await D1.prepare('SELECT k.etag AS etag, k.n AS n, p.d AS d FROM kv k LEFT JOIN kv_part p ON p.k = k.k AND p.v = k.etag WHERE k.k = ? ORDER BY p.i').bind(key).all();
+        if (!results.length) return { value: null, etag: null };
+        const { etag, n } = results[0];
+        const got = results.filter(r => r.d !== null && r.d !== undefined);
+        if (got.length === n) return { value: JSON.parse(got.map(r => r.d).join('')), etag };
+        // a newer save replaced the pieces while we read: try again
       }
       throw new Error('Storage busy; please retry.');
     },

@@ -233,4 +233,17 @@ ck('changing ADMIN_PASSWORD resets admin password', (await call(e2, { action: 'l
   for (let i = 0; i < 17; i++) await call0(bc, { action: 'backupNow', token: A2.token });
   ck('only the latest 14 are kept', (await call0(bc, { action: 'listBackups', token: A2.token })).body.backups.length === 14);
 }
+// bulk save: many students of one class in a single request are all stored (one shard write)
+{
+  const many = Array.from({ length: 25 }, (_, i) => ({ id: 'BULK' + i, full: { id: 'BULK' + i, assRefId: 'BULK' + i, surname: 'S' + i, firstName: 'F', class: 'ARTS 1', scores: {} } }));
+  let rb = await call(ctx, { action: 'save', token: adm.token, students: { upsert: many } });
+  ck('bulk create ok', rb.status === 200 && rb.body.rejected.length === 0, JSON.stringify(rb.body.rejected));
+  rb = await call(ctx, { action: 'save', token: adm.token, students: { upsert: many.map((m, i) => ({ id: m.id, sub: { scores: { Mathematics: { 'Year 1': { s1: 40 + i } } } } })).concat([{ id: 'BULK3', set: { class: 'SCIENCE 1' } }]) } });
+  ck('bulk update ok', rb.status === 200 && rb.body.rejected.length === 0, JSON.stringify(rb.body.rejected));
+  const sh = await call(ctx, { action: 'students', token: adm.token, shards: ['students/ARTS%201', 'students/SCIENCE%201'] });
+  const got = (sh.body.students || []).filter(x => x.id.startsWith('BULK'));
+  ck('bulk: all 25 stored once', got.length === 25 && new Set(got.map(x => x.id)).size === 25, got.length);
+  ck('bulk: scores kept', got.find(x => x.id === 'BULK7') && got.find(x => x.id === 'BULK7').scores.Mathematics['Year 1'].s1 === 47);
+  ck('bulk: class move applied', got.find(x => x.id === 'BULK3').class === 'SCIENCE 1');
+}
 console.log(JSON.stringify(results.filter(r => r[0] === 'FAIL'), null, 1), 'total', results.length, 'pass', results.filter(r => r[0] === 'PASS').length);
