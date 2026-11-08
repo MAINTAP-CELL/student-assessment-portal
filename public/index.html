@@ -911,7 +911,7 @@ function computeChanges(){
     const c = cur.students[st.id], p = snap.students[st.id];
     if(c === p) continue;
     if(p === undefined){ up.push({ id:st.id, full:st }); continue; }
-    const prev = JSON.parse(p), op = { id:st.id, set:{}, sub:{ scores:{}, components:{}, scoreMeta:{} } };
+    const prev = JSON.parse(p), op = { id:st.id, cls:prev.class, set:{}, sub:{ scores:{}, components:{}, scoreMeta:{} } };
     let n = 0;
     new Set([...Object.keys(st), ...Object.keys(prev)]).forEach(k=>{
       if(SUB_KEYS.includes(k)){

@@ -341,14 +341,21 @@ function applyStudentOp(existing, op, principal) {
 
 async function saveStudents(ctx, principal, changes, rejected) {
   const db = ctx.db;
-  const shards = await loadAllShards(db);
+  const ops = (changes.upsert || []).filter(op => op && typeof op.id === 'string');
+  // Reading every class (all students) on each save is slow. The browser says which class a student was
+  // in (op.cls), so only that class is read; every class is loaded only when that hint is missing or wrong.
+  const needAll = (changes.delete || []).length > 0 || ops.some(op => !op.full && typeof op.cls !== 'string');
   const where = new Map(); // id -> shard key
-  shards.forEach(sh => sh.list.forEach(s => where.set(s.id, sh.key)));
+  if (needAll) (await loadAllShards(db)).forEach(sh => sh.list.forEach(s => where.set(s.id, sh.key)));
   // All changed students of one class are written with ONE read + ONE write of that class's shard
   // (an upload of a whole class used to rewrite the shard once per student, which is far too slow).
-  const ops = (changes.upsert || []).filter(op => op && typeof op.id === 'string');
-  const byShard = new Map(), fresh = [];
-  for (const op of ops) { const k = where.get(op.id); if (k) { if (!byShard.has(k)) byShard.set(k, []); byShard.get(k).push(op); } else fresh.push(op); }
+  const byShard = new Map(), fresh = [], hinted = new Set();
+  for (const op of ops) {
+    let k = where.get(op.id);
+    if (!k && !op.full && typeof op.cls === 'string') { k = shardKey(op.cls); hinted.add(op.id); }
+    if (k) { if (!byShard.has(k)) byShard.set(k, []); byShard.get(k).push(op); } else fresh.push(op);
+  }
+  const unfound = [];
   const arrivals = new Map(); // shard key -> students that must be added there (new, or moved to another class)
   const addArrival = (key, st) => { if (!arrivals.has(key)) arrivals.set(key, []); arrivals.get(key).push(st); };
   const note = (op, r) => {
@@ -372,6 +379,8 @@ async function saveStudents(ctx, principal, changes, rejected) {
       return changed ? list : undefined;
     });
     results.forEach(([op, r]) => note(op, r));
+    const seen = new Set(results.map(([op]) => op.id));
+    list0.forEach(op => { if (!seen.has(op.id) && hinted.has(op.id)) unfound.push(op); });
     moved.forEach(st => addArrival(shardKey(st.class), st));
   }
   for (const op of fresh) {
@@ -390,6 +399,8 @@ async function saveStudents(ctx, principal, changes, rejected) {
       return changed ? list : undefined;
     });
   }
+  // a hint that turned out wrong: look these students up across all classes
+  if (unfound.length) await saveStudents(ctx, principal, { upsert: unfound.map(op => { const o = { ...op }; delete o.cls; return o; }) }, rejected);
   for (const id of (changes.delete || [])) {
     if (!(principal.role === 'admin' || canDelete(principal.user))) { rejected.push({ id, reason: 'not allowed to delete students' }); continue; }
     const key = where.get(id); if (!key) continue;

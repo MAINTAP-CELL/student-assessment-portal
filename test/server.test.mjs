@@ -244,6 +244,12 @@ ck('changing ADMIN_PASSWORD resets admin password', (await call(e2, { action: 'l
   const got = (sh.body.students || []).filter(x => x.id.startsWith('BULK'));
   ck('bulk: all 25 stored once', got.length === 25 && new Set(got.map(x => x.id)).size === 25, got.length);
   ck('bulk: scores kept', got.find(x => x.id === 'BULK7') && got.find(x => x.id === 'BULK7').scores.Mathematics['Year 1'].s1 === 47);
+  rb = await call(ctx, { action: 'save', token: adm.token, students: { upsert: [{ id: 'BULK5', cls: 'ARTS 1', sub: { scores: { Mathematics: { 'Year 1': { s1: 11 } } } } }, { id: 'BULK3', cls: 'ARTS 1', sub: { scores: { Mathematics: { 'Year 1': { s1: 12 } } } } }] } });
+  ck('hinted save ok (right and wrong hint)', rb.status === 200 && rb.body.rejected.length === 0, JSON.stringify(rb.body.rejected));
+  const sh2 = await call(ctx, { action: 'students', token: adm.token, shards: ['students/ARTS%201', 'students/SCIENCE%201'] });
+  const g2 = sh2.body.students.filter(x => x.id.startsWith('BULK'));
+  ck('hinted: right class updated', g2.find(x => x.id === 'BULK5').scores.Mathematics['Year 1'].s1 === 11);
+  ck('hinted: wrong hint found elsewhere', g2.find(x => x.id === 'BULK3').scores.Mathematics['Year 1'].s1 === 12 && g2.filter(x => x.id === 'BULK3').length === 1);
   ck('bulk: class move applied', got.find(x => x.id === 'BULK3').class === 'SCIENCE 1');
 }
 console.log(JSON.stringify(results.filter(r => r[0] === 'FAIL'), null, 1), 'total', results.length, 'pass', results.filter(r => r[0] === 'PASS').length);
