@@ -5146,7 +5146,7 @@ function certAwardSVG(st, item, cs){
     <line x1="480" x2="1130" y1="506" y2="506" stroke="${DK}" stroke-width="1.6"/>
     <text x="480" y="552" font-size="${tSize}" font-weight="900" fill="${DK}" letter-spacing="1.5">${certEsc(title)}</text>
     <text x="480" y="586" font-size="22" font-weight="700" fill="${G2}" letter-spacing="1.5">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
-    <text x="480" y="616" font-size="16" fill="#444" letter-spacing="1">${certEsc(cs.sem)} SEMESTER, ${certEsc(cs.year)} ACADEMIC YEAR</text>
+    <text x="480" y="616" font-size="16" fill="#444" letter-spacing="1">FIRST &amp; SECOND SEMESTERS, ${certEsc(cs.year)} ACADEMIC YEAR</text>
     ${sig(600,'HEADMASTER',cs.head)}${sig(1010,'ASST. HEAD ACADEMICS',cs.acad)}
     <circle cx="805" cy="712" r="40" fill="#fff" stroke="${G}" stroke-width="2"/><circle cx="805" cy="712" r="33" fill="${G}"/><text x="805" y="724" text-anchor="middle" font-size="34" fill="#f2cf63">★</text>
   </svg>`;
@@ -5164,7 +5164,7 @@ function openCertViewer(boxId, items, kind, backFn){
   const showFull = kind==='award' ? '' : '';
   document.getElementById(boxId).innerHTML = `
     <div class="toolbar cert-bar" style="flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
-      <div class="field"><label>Semester</label><select id="ct-sem"><option ${cs.sem==='FIRST'?'selected':''}>FIRST</option><option ${cs.sem==='SECOND'?'selected':''}>SECOND</option></select></div>
+      ${kind==='award' ? '' : `<div class="field"><label>Semester</label><select id="ct-sem"><option ${cs.sem==='FIRST'?'selected':''}>FIRST</option><option ${cs.sem==='SECOND'?'selected':''}>SECOND</option></select></div>`}
       <div class="field"><label>Academic year</label><input id="ct-year" value="${certEsc(cs.year)}" style="width:110px;"/></div>
       ${kind==='award' ? '' : `<div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
       <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>`}
