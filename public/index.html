@@ -3367,7 +3367,30 @@ function renderCaptureSubject(){
   const saved = getAssessmentOveralls(clsName, subj, sem);
   const allSet = ASSESSMENT_MODES.every(mode => saved[mode.key] != null);
 
-  const setupPanel = `
+  // Counter: how many students have each assessment mode captured, and which modes are complete
+  const total = list.length;
+  const modeCounts = ASSESSMENT_MODES.map(mode=>({ mode, n: list.filter(st=> getComponentScore(st, subj, year, sem, mode.key) != null).length }));
+  const doneModes = modeCounts.filter(m=> total>0 && m.n===total).length;
+  const counterPanel = `
+    <div class="card" style="padding:16px 22px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <h3 class="serif" style="margin:0; font-size:15px;">Capture Progress — ${subj}</h3>
+        <span class="pill" style="font-weight:700; ${doneModes===ASSESSMENT_MODES.length ? 'background:#d8f0df; color:#14532d;' : 'background:#fdecc8; color:#7a4b00;'}">${doneModes} of ${ASSESSMENT_MODES.length} modes captured${doneModes===ASSESSMENT_MODES.length ? ' ✔' : ''}</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px;">
+        ${modeCounts.map(({mode,n})=>{
+          const full = total>0 && n===total, none = n===0;
+          const col = full ? '#14532d' : none ? '#9b1c1c' : '#7a4b00', bg = full ? '#e8f6ec' : none ? '#fbe9e9' : '#fdf3dc';
+          return `<div style="border:1px solid var(--rule); border-radius:4px; padding:10px 12px; background:${bg};">
+            <div style="font-size:12px; font-weight:600; color:var(--slate);">${mode.label}</div>
+            <div style="font-size:20px; font-weight:700; color:${col};">${n} / ${total}</div>
+            <div style="font-size:11.5px; font-weight:700; color:${col};">${full ? '✔ Captured' : none ? '✖ Not captured' : '◐ ' + (total-n) + ' still missing'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  const setupPanel = counterPanel + `
     <div class="card" style="padding:18px 22px; margin-bottom:16px;">
       <h3 class="serif" style="margin:0 0 4px; font-size:15px;">Assessment Modes — Overall Scores</h3>
       <p style="margin:0 0 14px; font-size:12px; color:var(--slate);">Enter the maximum obtainable mark for each assessment mode before capturing student scores for ${subj} — all five are required.</p>
