@@ -361,6 +361,8 @@
     .dash-3{ grid-template-columns:1fr; }
   }
   .summary-report{ background:#fff; border:1px solid var(--rule); border-radius:4px; padding:24px 26px 30px; font-family:'IBM Plex Sans', sans-serif; color:#111; }
+  .sr-logo-left{ position:relative; min-height:84px; }
+  .sr-logo-left .sr-badge{ position:absolute; left:0; top:50%; transform:translateY(-50%); width:80px; height:80px; }
   .sr-head{ display:flex; gap:14px; align-items:center; justify-content:center; text-align:center; }
   .sr-badge{ width:58px; height:58px; border:none; border-radius:0; flex-shrink:0; overflow:hidden; background:transparent; }
   .sr-titleblock{ font-size:11.5px; line-height:1.55; }
@@ -3987,7 +3989,7 @@ function buildClassSummaryHTML(className, year, sem){
 
   return `
     <div class="summary-report">
-      <div class="sr-head">
+      <div class="sr-head sr-logo-left">
         <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
         <div class="sr-titleblock">
           <div class="sr-ges">GHANA EDUCATION SERVICE</div>
