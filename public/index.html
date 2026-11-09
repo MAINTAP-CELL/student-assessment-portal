@@ -4476,7 +4476,7 @@ function saveTermSettings(){
    never silently drops a feature — it just prompts for a proper description later. */
 const MANUAL_DESCRIPTIONS = {
   studentRanking: 'Admin only. Ranks students from the highest totals score to the lowest, for one semester. Choose the Year (or All years), the Learning Area, the Class (or All classes) and the Semester. The table shows each student\'s Rank, Name, Class, Total Score and Aggregate, taken from the Class Summary figures, so it only includes students whose scores have been captured. Use it to see the top performers of a whole year, a department or a single class, and click Print / Save as PDF to print the list or keep a copy.',
-  remedial: 'Admin only. Shows the students who need remedial or intervention support in a chosen semester: every student with an F9 in any subject, or who has not written a subject yet (shown as NOT WRITTEN). Choose the Year (or All years) and the Semester. The students are grouped by class, one page per class, and each row shows the Student Name, the Subject, whether it is a Core subject (YES or NO) and the Grade. Use it to plan extra lessons and follow-up with the students and their parents, and to spot subjects whose scores have not been captured. Click Print All / Save as PDF to print every class.',
+  remedial: 'Admin only. Shows the students who need remedial or intervention support in a chosen semester: every student with a D7, E8 or F9 in any subject, or who has not written a subject yet (shown as NOT WRITTEN). Choose the Year (or All years) and the Semester. The students are grouped by class, one page per class, and each row shows the Student Name, the Subject, whether it is a Core subject (YES or NO) and the Grade. Use it to plan extra lessons and follow-up with the students and their parents, and to spot subjects whose scores have not been captured. Click Print All / Save as PDF to print every class.',
   achievers: 'Admin only. Lists the Achievers: students with grade A1 in at least 2 core subjects and at least 3 elective subjects, worked out from the Class Summary data across every matching class. Choose the Year (or All years) and the Semester, then print the list or save it as PDF. Use the Achievers\' Certificates button to produce an Achievers Club certificate for every achiever, or the certificate button on one row for a single student. Edit the semester, academic year and signatory names above the certificates, then click Download / Print and choose Save as PDF (A4 landscape). The file is named after the student.',
   awards: 'Admin only. Works out the Academic Awards (best student per subject, overall best student, and best student per department) for Form 1 (Year 1), Form 2 (Year 2) and Form 3 (Year 3) from the captured scores, and lets you print the list, download it as Excel, or produce an Award Certificate for every winner (or for one winner). Awards are based on both semesters. Certificates print on A4 landscape and can be saved as PDF.',
   schoolMonitor: 'Admin only. Lists each teacher\'s subject and class assignments (Name, Email, Phone, CID, Subject, Class, Total Teachers, Total Assigned, Captured, Not Captured) showing how many students have scores captured for a chosen year, assessment mode and semester. Use Unassigned to list subjects with no teacher, and Download to export to Excel.',
@@ -4852,8 +4852,8 @@ function computeRemedialList(year, sem){
           rows.push({ student: s, subject: subj, core: isCore, grade: 'NOT WRITTEN' });
         } else {
           const g = gradeFor(score);
-          if(g.grade === 'F9'){
-            rows.push({ student: s, subject: subj, core: isCore, grade: 'F9' });
+          if(['D7','E8','F9'].includes(g.grade)){
+            rows.push({ student: s, subject: subj, core: isCore, grade: g.grade });
           }
         }
       });
@@ -5241,7 +5241,7 @@ RENDER.remedial = function(){
   return `
     <div class="page-head">
       <h1>Remedial/Intervention Students</h1>
-      <p>Every student with an F9 in any subject, or who has not written a subject yet, for a chosen semester — across every department, arranged by class.</p>
+      <p>Every student with a D7, E8 or F9 in any subject, or who has not written a subject yet, for a chosen semester — across every department, arranged by class.</p>
     </div>
     <div class="toolbar">
       <div class="field"><label>Year</label>
@@ -5263,7 +5263,7 @@ function renderRemedial(){
   const groups = computeRemedialList(year, sem);
   const box = document.getElementById('rem-box');
   if(!groups.length){
-    box.innerHTML = `<div class="empty"><div class="glyph">▤</div><b>No remedial or intervention cases found</b><p>No student has an F9 or an unwritten subject for this filter — try a different year or semester.</p></div>`;
+    box.innerHTML = `<div class="empty"><div class="glyph">▤</div><b>No remedial or intervention cases found</b><p>No student has a D7, E8, F9 or an unwritten subject for this filter — try a different year or semester.</p></div>`;
     return;
   }
   box.innerHTML = groups.map((group, gi)=>`
@@ -5285,7 +5285,7 @@ function renderRemedial(){
         <div><b>DEPARTMENT</b> &nbsp;${group.cls.learningArea}</div>
         <div><b>SEM</b> &nbsp;${sem==='s1'?'ONE(1)':'TWO(2)'}</div>
       </div>
-      <div class="sr-subtitle">F9 Grades &amp; Unwritten Subjects</div>
+      <div class="sr-subtitle">D7, E8, F9 Grades &amp; Unwritten Subjects</div>
       <div class="sr-table-wrap">
         <table>
           <thead><tr><th>STUDENT NAME</th><th>SUBJECT</th><th>CORE</th><th>GRADE</th></tr></thead>
@@ -5294,7 +5294,7 @@ function renderRemedial(){
               <td style="font-weight:600;">${fullName(r.student)}</td>
               <td>${r.subject}</td>
               <td style="text-align:center;">${r.core ? 'YES' : 'NO'}</td>
-              <td style="text-align:center; font-weight:700; ${r.grade==='F9'?'color:var(--clay);':''}">${r.grade}</td>
+              <td style="text-align:center; font-weight:700; ${r.grade==='F9'||r.grade==='E8'?'color:var(--clay);':''}">${r.grade}</td>
             </tr>`).join('')}
           </tbody>
         </table>
