@@ -125,7 +125,9 @@
     content:''; position:absolute; inset:6px; border:1px solid rgba(201,162,39,.55); border-radius:50%;
   }
   .seal-star{ color:var(--gold); font-size:30px; }
-  .seal img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .seal img{ width:100%; height:100%; object-fit:contain; border-radius:0; }
+  .seal:has(img){ border:none; border-radius:0; }
+  .seal:has(img)::before{ display:none; }
   .login-side h1{ font-size:26px; font-weight:600; line-height:1.25; margin:0 0 10px; color:#F7F2DF; }
   .login-side p{ font-size:13.5px; line-height:1.6; color:#C9CFC4; max-width:32ch; margin:0 0 30px; }
   .login-side .badge-row{ display:flex; gap:10px; margin-top:auto; position:absolute; bottom:40px; left:40px; right:40px; }
@@ -309,8 +311,8 @@
 
   .ac-count{ background:var(--forest); color:#fff; font-weight:700; font-size:12.5px; padding:4px 12px; border-radius:999px; white-space:nowrap; }
   .dash-hero{ text-align:center; margin:0 0 24px; }
-  .dash-logo{ width:132px; height:132px; margin:0 auto 10px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; border:3px solid var(--forest); box-shadow:0 2px 10px rgba(0,0,0,.15); }
-  .dash-logo img, .dash-logo svg{ width:100%; height:100%; object-fit:cover; }
+  .dash-logo{ width:132px; height:132px; margin:0 auto 10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:0; box-shadow:none; }
+  .dash-logo img, .dash-logo svg{ width:100%; height:100%; object-fit:contain; }
   .dash-school{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:var(--forest); }
   .dash-top{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
   .dash-top .dtile{ width:138px; min-height:68px; padding:6px 6px 8px; border-radius:16px; }
@@ -360,7 +362,7 @@
   }
   .summary-report{ background:#fff; border:1px solid var(--rule); border-radius:4px; padding:24px 26px 30px; font-family:'IBM Plex Sans', sans-serif; color:#111; }
   .sr-head{ display:flex; gap:14px; align-items:center; justify-content:center; text-align:center; }
-  .sr-badge{ width:54px; height:54px; border-radius:50%; border:2px solid var(--forest); flex-shrink:0; overflow:hidden; background:#fff; }
+  .sr-badge{ width:58px; height:58px; border:none; border-radius:0; flex-shrink:0; overflow:hidden; background:transparent; }
   .sr-titleblock{ font-size:11.5px; line-height:1.55; }
   .sr-titleblock .sr-ges{ font-weight:700; }
   .sr-school-name{ font-weight:700; font-size:13.5px; text-transform:uppercase; }
@@ -3986,7 +3988,7 @@ function buildClassSummaryHTML(className, year, sem){
   return `
     <div class="summary-report">
       <div class="sr-head">
-        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;"/>` : BADGE_SVG}</div>
+        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
         <div class="sr-titleblock">
           <div class="sr-ges">GHANA EDUCATION SERVICE</div>
           <div class="sr-school-name">${state.school.name}</div>
@@ -4531,7 +4533,7 @@ RENDER.userManualSource = function(){ // full manual, used only to produce user-
     if(box) box.innerHTML = `
       <div class="manual-doc">
         <div class="manual-cover">
-          <div class="seal" style="width:70px; height:70px; margin:0 auto 18px;">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>` : '<span class="seal-star">★</span>'}</div>
+          <div class="seal" style="width:70px; height:70px; margin:0 auto 18px;">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : '<span class="seal-star">★</span>'}</div>
           <h1 class="serif">Student Assessment Portal — User Manual</h1>
           <div class="school">${state.school.name}</div>
           <div class="date">Generated ${generatedDate} · reflects the current menu</div>
@@ -4668,7 +4670,7 @@ function renderAchievers(){
   box.innerHTML = `
     <div class="summary-report">
       <div class="sr-head">
-        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;"/>` : BADGE_SVG}</div>
+        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
         <div class="sr-titleblock">
           <div class="sr-ges">GHANA EDUCATION SERVICE</div>
           <div class="sr-school-name">${state.school.name}</div>
@@ -4794,7 +4796,7 @@ function renderStudentRanking(){
   box.innerHTML = `
     <div class="summary-report">
       <div class="sr-head">
-        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;"/>` : BADGE_SVG}</div>
+        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
         <div class="sr-titleblock">
           <div class="sr-ges">GHANA EDUCATION SERVICE</div>
           <div class="sr-school-name">${state.school.name}</div>
@@ -5262,7 +5264,7 @@ function renderRemedial(){
   box.innerHTML = groups.map((group, gi)=>`
     <div class="summary-report" style="${gi>0?'margin-top:24px;':''} page-break-after: ${gi<groups.length-1 ? 'always' : 'auto'};">
       <div class="sr-head">
-        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;"/>` : BADGE_SVG}</div>
+        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
         <div class="sr-titleblock">
           <div class="sr-ges">GHANA EDUCATION SERVICE</div>
           <div class="sr-school-name">${state.school.name}</div>
@@ -5346,7 +5348,7 @@ RENDER.schoolInfo = function(){
       <div class="field">
         <label>School Logo<span style="color:#b3141c;"> *</span></label>
         <div style="display:flex; align-items:center; gap:14px;">
-          <div id="si-logo-preview" style="width:64px; height:64px; border-radius:50%; border:2px solid var(--forest); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">${sc.logo ? `<img src="${sc.logo}" style="width:100%;height:100%;object-fit:cover;"/>` : BADGE_SVG}</div>
+          <div id="si-logo-preview" style="width:64px; height:64px; border-radius:0; border:none; background:transparent; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">${sc.logo ? `<img src="${sc.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
           <div>
             <input type="file" id="si-logo" accept="image/*" onchange="handlePhotoInput(this,'si-logo-preview', function(v){ pendingLogo = v; })"/>
             <div style="font-size:11px; color:var(--slate); margin-top:6px;">Appears on the sign-in screen, sidebar and every transcript header.</div>
@@ -5411,7 +5413,7 @@ function saveSchool(){
 }
 function refreshBranding(){
   const html = state.school.logo
-    ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+    ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>`
     : '<span class="seal-star">★</span>';
   const loginSeal = document.getElementById('login-seal');
   const brandSeal = document.getElementById('brand-seal');
