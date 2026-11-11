@@ -3983,7 +3983,7 @@ function buildClassSummaryHTML(className, year, sem){
       ${cells}
       <td class="mono" style="text-align:center; font-weight:700;">${Math.round(r.totalsScore)}</td>
       <td class="mono" style="text-align:center; font-weight:700;">${r.overallPosition}</td>
-      <td class="mono" style="text-align:center; font-weight:700;">${r.aggregate!=null ? r.aggregate : '-'}</td>
+      <td class="mono" style="text-align:center; font-weight:700;">${aggregateCell(r.aggregate, r, state.classes.find(c=>c.name===className))}</td>
     </tr>`;
   }).join('');
 
@@ -4197,6 +4197,21 @@ function computeTerminalAggregate(row, cls){
   return total;
 }
 
+/* Why an aggregate is blank: which of the 4 compulsory subjects has no score yet, or whether fewer than 2 electives are scored */
+function aggregateMissing(row, cls){
+  const isScience = cls && cls.learningArea === 'SCIENCE';
+  const constants = isScience ? ['Mathematics','English Language','Social Studies','Computing'] : ['English Language','Mathematics','General Science','Social Studies'];
+  const by = {}; row.subjData.forEach(d=>{ by[d.subject]=d; });
+  const miss = constants.filter(c=>!by[c] || !by[c].grade);
+  if(miss.length) return 'Needs: ' + miss.join(', ');
+  const el = row.subjData.filter(d=>!constants.includes(d.subject) && d.grade).length;
+  return el < 2 ? 'Needs 2 electives' : '';
+}
+function aggregateCell(value, row, cls){
+  if(value!=null) return value;
+  const why = aggregateMissing(row, cls);
+  return why ? `<span style="font-size:9.5px; font-weight:600; color:var(--clay); line-height:1.2; display:inline-block;">${why}</span>` : '—';
+}
 function buildTerminalReportHTML(s, clsName, sem, year, data){
   const row = data ? data.rows.find(r=>r.student.id===s.id) : null;
   if(!row) return null;
@@ -4631,7 +4646,7 @@ function computeAchievers(year, sem){
         }
       });
       if(coreA.length >= 2 && electiveA.length >= 3){
-        achievers.push({ student: row.student, cls: cls.name, coreA, electiveA, totalsScore: row.totalsScore, overallPosition: row.overallPosition, aggregate: computeTerminalAggregate(row, cls) });
+        achievers.push({ row, clsObj: cls, student: row.student, cls: cls.name, coreA, electiveA, totalsScore: row.totalsScore, overallPosition: row.overallPosition, aggregate: computeTerminalAggregate(row, cls) });
       }
     });
   });
@@ -4707,7 +4722,7 @@ function renderAchievers(){
               <td style="font-size:12px;">${a.coreA.join(', ')}</td>
               <td style="font-size:12px;">${a.electiveA.join(', ')}</td>
               <td class="mono" style="text-align:center; font-weight:700;">${Math.round(a.totalsScore)}</td>
-              <td class="mono" style="text-align:center; font-weight:700;">${a.aggregate!=null ? a.aggregate : '—'}</td>
+              <td class="mono" style="text-align:center; font-weight:700;">${aggregateCell(a.aggregate, a.row, a.clsObj)}</td>
               <td class="mono" style="text-align:center;">${a.overallPosition}</td>
               <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="showAchieverCertificates(${idx})">🎓</button></td>
             </tr>`).join('')}
@@ -4732,6 +4747,7 @@ function computeStudentRanking(year, area, clsName, sem){
     data.rows.forEach(row=>{
       const aggregate = computeTerminalAggregate(row, cls);
       ranked.push({
+        row, clsObj: cls,
         student: row.student,
         cls: cls.name,
         totalsScore: row.totalsScore,
@@ -4828,7 +4844,7 @@ function renderStudentRanking(){
               <td style="white-space:normal; word-break:break-word; max-width:180px; font-weight:600;">${fullName(r.student)}</td>
               <td>${r.cls}</td>
               <td class="mono" style="text-align:center; font-weight:700;">${Math.round(r.totalsScore)}</td>
-              <td class="mono" style="text-align:center; font-weight:700;">${r.aggregate!=null ? r.aggregate : '-'}</td>
+              <td class="mono" style="text-align:center; font-weight:700;">${aggregateCell(r.aggregate, r.row, r.clsObj)}</td>
             </tr>`).join('')}
           </tbody>
         </table>
