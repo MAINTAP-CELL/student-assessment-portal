@@ -4276,11 +4276,11 @@ function buildTerminalReportHTML(s, clsName, sem, year, data){
         <tr>
           <td class="lbl">CLASS</td><td class="val">${clsName}</td>
           <td class="lbl">STATUS</td><td class="val">${s.residency || '—'}</td>
-          <td class="lbl">DATE VACATED</td><td class="val">${ts.dateVacated || '—'}</td>
+          <td class="lbl">DATE VACATED</td><td class="val">${tsDates(ts, sem).dateVacated || '—'}</td>
         </tr>
         <tr>
           <td class="lbl">LEARNING AREA</td><td class="val">${s.learningArea}</td>
-          <td class="lbl">NEXT SEMESTER BEGINS</td><td class="val">${ts.nextSemesterBegins || '—'}</td>
+          <td class="lbl">NEXT SEMESTER BEGINS</td><td class="val">${tsDates(ts, sem).nextSemesterBegins || '—'}</td>
           <td class="lbl">TERM</td><td class="val">${sem==='s1' ? 'ONE(1)' : 'TWO(2)'}</td>
         </tr>
         <tr>
@@ -4392,7 +4392,10 @@ RENDER.termSettings = function(){
       <p>Set the shared house, status, term and attendance details for a class — these appear on every student's SHS Terminal Report in that class.</p>
     </div>
     <div class="card" style="padding:26px 28px; max-width:680px;">
-      <div class="field"><label>Class</label><select id="ts-class" onchange="tsLoadForm()">${classOpts}</select></div>
+      <div class="grid2">
+        <div class="field"><label>Class</label><select id="ts-class" onchange="tsLoadForm()">${classOpts}</select></div>
+        <div class="field"><label>Semester</label><select id="ts-sem" onchange="tsSemChanged()"><option value="s1">ONE (1)</option><option value="s2">TWO (2)</option></select></div>
+      </div>
       <div class="field"><label>Academic Year</label><input id="ts-year" placeholder="2025-2026"/>
         <div style="font-size:11.5px; color:var(--slate); margin-top:5px;">The Term (ONE or TWO) on each Terminal Report follows the semester selected on that report.</div>
       </div>
@@ -4400,6 +4403,7 @@ RENDER.termSettings = function(){
         <div class="field"><label>Date Vacated</label><input id="ts-vacated" type="date"/></div>
         <div class="field"><label>Next Semester Begins</label><input id="ts-nextsem" type="date"/></div>
       </div>
+      <div style="font-size:11.5px; color:var(--slate); margin:-6px 0 14px;">These two dates are kept separately for each semester — they follow the semester chosen here.</div>
       <div class="field"><label>Promoted To</label><input id="ts-promoted" placeholder="e.g. SECOND TERM"/></div>
       <div class="field"><label>Assistant Head Academic</label><input id="ts-academic" placeholder="Full name"/>
         <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
@@ -4445,12 +4449,26 @@ function tsSignatureInput(inputEl, key){
   reader.readAsDataURL(file);
 }
 function tsClearSignature(key){ pendingSig[key] = null; tsShowSig(key); }
+/* Date Vacated and Next Semester Begins belong to a semester: ts.bySem = { s1:{...}, s2:{...} }.
+   Older saves kept them at the top level; those are treated as semester ONE. */
+function tsDates(ts, sem){
+  ts = ts || {};
+  const b = ts.bySem && ts.bySem[sem];
+  if(b) return { dateVacated: b.dateVacated || '', nextSemesterBegins: b.nextSemesterBegins || '' };
+  if(sem === 's1' && !(ts.bySem && ts.bySem.s1)) return { dateVacated: ts.dateVacated || '', nextSemesterBegins: ts.nextSemesterBegins || '' };
+  return { dateVacated: '', nextSemesterBegins: '' };
+}
+function tsSemChanged(){
+  const ts = state.classTermSettings[document.getElementById('ts-class').value] || {};
+  const d = tsDates(ts, document.getElementById('ts-sem').value);
+  document.getElementById('ts-vacated').value = d.dateVacated ? isoFromDisplayDate(d.dateVacated) : '';
+  document.getElementById('ts-nextsem').value = d.nextSemesterBegins ? isoFromDisplayDate(d.nextSemesterBegins) : '';
+}
 function tsLoadForm(){
   const clsName = document.getElementById('ts-class').value;
   const ts = state.classTermSettings[clsName] || {};
   document.getElementById('ts-year').value = ts.academicYear || '2025-2026';
-  document.getElementById('ts-vacated').value = ts.dateVacated ? isoFromDisplayDate(ts.dateVacated) : '';
-  document.getElementById('ts-nextsem').value = ts.nextSemesterBegins ? isoFromDisplayDate(ts.nextSemesterBegins) : '';
+  tsSemChanged();
   document.getElementById('ts-promoted').value = ts.promotedTo || '';
   document.getElementById('ts-academic').value = ts.assistHeadAcademic || '';
   document.getElementById('ts-headmaster').value = ts.headmaster || '';
@@ -4471,10 +4489,16 @@ function displayDateFromIso(iso){
 }
 function saveTermSettings(){
   const clsName = document.getElementById('ts-class').value;
-  state.classTermSettings[clsName] = {
-    academicYear: val('ts-year'),
+  const semSel = document.getElementById('ts-sem').value;
+  const old = state.classTermSettings[clsName] || {};
+  const bySem = Object.assign({ s1: tsDates(old,'s1'), s2: tsDates(old,'s2') }, old.bySem || {});
+  bySem[semSel] = {
     dateVacated: displayDateFromIso(document.getElementById('ts-vacated').value),
     nextSemesterBegins: displayDateFromIso(document.getElementById('ts-nextsem').value),
+  };
+  state.classTermSettings[clsName] = {
+    academicYear: val('ts-year'),
+    bySem,
     promotedTo: val('ts-promoted'),
     assistHeadAcademic: val('ts-academic'),
     headmaster: val('ts-headmaster'),
@@ -4482,7 +4506,7 @@ function saveTermSettings(){
     headSignature: pendingSig.head,
   };
   navigate('termSettings');
-  toast(`Term settings saved for ${clsName}.`);
+  toast(`Term settings saved for ${clsName} (semester ${semSel==='s1'?'ONE':'TWO'}).`);
 }
 
 /* ---------------- User Manual (auto-generated from the live sidebar) ---------------- */
