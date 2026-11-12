@@ -157,7 +157,7 @@ async function trace(ctx, user, role, status, device, ip) {
     const cfg = await getJ(ctx.db, 'config', {});
     const host = [String(device || '').replace(/[<>]/g, '').slice(0, 60), ip || ''].filter(Boolean).join(' · ');
     const entry = { branch: (cfg.school && cfg.school.name) || '', when: stamp(), user: String(user || '(blank)').replace(/[<>]/g, '').slice(0, 80), role, host, status };
-    await update(ctx.db, 'trace', [], list => { list.push(entry); return list.slice(-2000); });
+    await update(ctx.db, 'trace', [], list => { list.push(entry); return list.slice(-300); });
   } catch (e) { /* tracing must never break sign-in */ }
 }
 async function registerFail(ctx, keys) {
@@ -206,7 +206,7 @@ async function buildData(ctx, principal) {
   if (principal.role === 'admin') {
     const users = (await getJ(db, 'users', [])).map(publicUser);
     return { school: cfg.school, classes: cfg.classes, assessmentOveralls: cfg.assessmentOveralls, classTermSettings: cfg.classTermSettings,
-      users, loginTrace: (await getJ(db, 'trace', [])).slice(-500), students: [], shards: await visibleShardKeys(ctx, principal) };
+      users, loginTrace: (await getJ(db, 'trace', [])).slice(-200), students: [], shards: await visibleShardKeys(ctx, principal) };
   }
   if (principal.role === 'teacher') {
     const me = principal.user;
@@ -625,7 +625,7 @@ export async function handle(ctx, req) {
       case 'sendSms': return await sendSms(ctx, principal, b);
       case 'trace':
         if (principal.role !== 'admin') return err(403, 'Only the administrator can view the login trace.');
-        return ok({ loginTrace: (await getJ(ctx.db, 'trace', [])).slice(-500), token: issue(ctx, principal) });
+        return ok({ loginTrace: (await getJ(ctx.db, 'trace', [])).slice(-200), token: issue(ctx, principal) });
       case 'listBackups': case 'backupNow': case 'downloadBackup': case 'restoreBackup': {
         if (principal.role !== 'admin') return err(403, 'Only the administrator can manage backups.');
         if (b.action === 'listBackups') return ok({ backups: await getJ(ctx.db, 'backup-index', []), token: issue(ctx, principal) });
