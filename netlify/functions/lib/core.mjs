@@ -219,7 +219,10 @@ async function buildData(ctx, principal) {
   return { school: cfg.school, classes: cfg.classes.filter(c => c.name === st.class),
     assessmentOveralls: Object.fromEntries(Object.entries(cfg.assessmentOveralls || {}).filter(([k]) => k.startsWith(st.class + '||'))),
     classTermSettings: Object.fromEntries(Object.entries(cfg.classTermSettings || {}).filter(([k]) => k === st.class)),
-    users: [], loginTrace: [], students: [st], shards: [] };
+    users: [], loginTrace: [], students: [st], shards: [],
+    // The classmates' marks, with no names or ids, so the report can show the true Position and No. on Roll.
+    classmates: (await getJ(db, shardKey(st.class), [])).filter(x => x.id !== st.id)
+      .map((x, i) => ({ id: 'anon' + i, class: x.class, learningArea: x.learningArea, scores: x.scores || {} })) };
 }
 async function studentsForShards(ctx, principal, keys) {
   const allowed = new Set(await visibleShardKeys(ctx, principal));

@@ -67,6 +67,14 @@ r = await call(ctx, { action: 'login', username: kid.assRefId, password: '06/02/
 ck('parent correct DOB', r.status === 200 && r.body.user.role === 'parent');
 const par = r.body;
 ck('parent sees only own child', par.data.students.length === 1 && par.data.students[0].id === kid.id && par.data.users.length === 0);
+ck('parent gets anonymous classmates for the true roll/position', Array.isArray(par.data.classmates) && par.data.classmates.every(c => /^anon\d+$/.test(c.id) && c.class === kid.class && !('surname' in c) && !('firstName' in c) && !('photo' in c)) && !JSON.stringify(par.data.classmates).includes(kid.id), JSON.stringify(par.data.classmates).slice(0, 120));
+{
+  const adm0 = (await call(ctx, { action: 'login', username: '0051606', password: 'Adm1n-Pass-xyz' })).body;
+  await call(ctx, { action: 'save', token: adm0.token, students: { upsert: [{ id: 'MATE1', full: { id: 'MATE1', assRefId: 'MATE1', surname: 'Secret', firstName: 'Name', class: kid.class, scores: { Mathematics: { 'Year 1': { s1: 77 } } } } }] } });
+  const st = await call(ctx, { action: 'state', token: par.token });
+  const cm = (st.body.data || st.body).classmates || [];
+  ck('parent classmates: marks present, identity absent', cm.length === 1 && cm[0].scores.Mathematics['Year 1'].s1 === 77 && !JSON.stringify(cm).includes('Secret') && !JSON.stringify(cm).includes('MATE1'), JSON.stringify(cm).slice(0, 150));
+}
 ck('parent sees only own class', par.data.classes.length === 1 && par.data.classes[0].name === kid.class);
 ck('parent cannot save', (await call(ctx, { action: 'save', token: par.token, students: { upsert: [{ id: kid.id, set: { surname: 'X' } }] } })).status === 403);
 ck('parent cannot read trace', (await call(ctx, { action: 'trace', token: par.token })).status === 403);

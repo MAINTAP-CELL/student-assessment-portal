@@ -855,7 +855,7 @@ function takeSnap(){ snap = buildSnapshot(); }
 function applySettings(d){
   state.school = d.school || state.school;
   state.users = d.users || []; state.classes = d.classes || [];
-  state.assessmentOveralls = d.assessmentOveralls || {}; state.classTermSettings = d.classTermSettings || {};
+  state.assessmentOveralls = d.assessmentOveralls || {}; state.classTermSettings = d.classTermSettings || {}; state.classmates = d.classmates || [];
   state.loginTrace = d.loginTrace || [];
   if(typeof refreshBranding === 'function') refreshBranding();
 }
@@ -3891,7 +3891,8 @@ const AGGREGATE_POINTS = {A1:1, B2:2, B3:3, C4:4, C5:5, C6:6, D7:7, E8:8, F9:9};
 function computeClassSummary(className, year, sem){
   const cls = state.classes.find(c=>c.name===className);
   if(!cls) return null;
-  const students = state.students.filter(s=>s.class===className);
+  // a parent only has their own child; the server adds anonymous classmates so Position and No. on Roll are the class's real figures
+  const students = state.students.filter(s=>s.class===className).concat((state.classmates||[]).filter(s=>s.class===className));
   const subjects = cls.subjects;
 
   const subjectRanks = {};
