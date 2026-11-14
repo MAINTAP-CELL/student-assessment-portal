@@ -320,7 +320,7 @@ function applyStudentOp(existing, op, principal) {
     if (!admin) for (const c of SCORE_CONTAINERS) if (full[c]) full[c] = {};
     return { student: full };
   }
-  const s = JSON.parse(JSON.stringify(existing));
+  const s = existing; // edited in place: the caller re-reads the shard fresh on every attempt, and a deep copy per student was the main CPU cost
   const aset = admin ? null : assignedSet(me);
   const okSubject = (subj) => admin || aset.has(`${s.class}||${subj}`);
   let changed = false, denied = 0;
