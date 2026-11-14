@@ -819,9 +819,11 @@ function deviceLabel(){
 }
 async function api(action, body){
   let res;
+  const ctl = new AbortController(), timer = setTimeout(()=>ctl.abort(), 30000); // never wait forever on a slow connection
   try{
-    res = await fetch(API_URL, { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(Object.assign({}, body||{}, { action, token: authToken, device: deviceLabel() })) });
-  }catch(e){ const er = new Error('Cannot reach the server. Check your internet connection and try again.'); er.network = true; throw er; }
+    res = await fetch(API_URL, { signal: ctl.signal, method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(Object.assign({}, body||{}, { action, token: authToken, device: deviceLabel() })) });
+  }catch(e){ clearTimeout(timer); const er = new Error(e && e.name==='AbortError' ? 'The server is taking too long. It will keep trying.' : 'Cannot reach the server. Check your internet connection and try again.'); er.network = true; throw er; }
+  clearTimeout(timer);
   let j = {}; try{ j = await res.json(); }catch(e){}
   if(j.token) setToken(j.token);
   if(!res.ok){
@@ -928,7 +930,7 @@ function computeChanges(){
   Object.keys(snap.students).forEach(id=>{ if(!present.has(id)) del.push(id); });
   const sendUp = up.slice(0, 40);
   if(sendUp.length || del.length){ body.students = { upsert:sendUp, delete:del }; any = true; }
-  return any ? { body, cur, sentIds: sendUp.map(o=>o.id), del } : null;
+  return any ? { body, cur, sentIds: sendUp.map(o=>o.id), del, remaining: up.length } : null;
 }
 function commitSnapshot(ch){
   const b = ch.body;
@@ -942,18 +944,19 @@ function setSaveStatus(kind, msg){
   let el = document.getElementById('save-status');
   if(!el){ el = document.createElement('div'); el.id = 'save-status'; document.body.appendChild(el); }
   el.className = 'save-status ' + kind;
-  el.textContent = kind==='saving' ? 'Saving…' : kind==='saved' ? 'All changes saved ✓' : '⚠ Not saved — ' + (msg || 'retrying…');
+  el.textContent = kind==='saving' ? 'Saving…' + (msg ? ' ' + msg : '') : kind==='saved' ? 'All changes saved ✓' : '⚠ Not saved — ' + (msg || 'retrying…');
   el.style.display = 'block';
   if(kind==='saved'){ clearTimeout(setSaveStatus._t); setSaveStatus._t = setTimeout(()=>{ el.style.display='none'; }, 2500); }
 }
 async function syncTick(){
   if(syncBusy || !authToken || !state.currentUser) return;
   const ch = computeChanges(); if(!ch) return;
-  syncBusy = true; setSaveStatus('saving');
+  syncBusy = true; setSaveStatus('saving', ch.remaining > 1 ? '(' + ch.remaining + ' students left)' : '');
   try{
     const r = await api('save', ch.body);
     commitSnapshot(ch);
     setSaveStatus('saved');
+    if(ch.remaining > ch.sentIds.length && !(r.rejected && r.rejected.length)){ syncBusy = false; setTimeout(syncTick, 0); } // more students to save: carry on straight away
     if(r.rejected && r.rejected.length){
       syncBusy = false;
       toast('Some changes were not allowed for your account and have been undone.', true);
