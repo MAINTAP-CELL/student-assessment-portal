@@ -5207,20 +5207,21 @@ function certAwardSVG(st, item, cs){
   const subj = String(item.label||'').replace(/\s*\(FORM \d\)\s*$/,'');
   const title = (item.kind==='Overall' ? 'OVERALL BEST STUDENT' : item.kind==='Department' ? 'BEST STUDENT — '+subj : 'BEST STUDENT IN '+subj).toUpperCase();
   const tSize = Math.max(20, Math.min(42, Math.floor(760/(title.length*0.78))));
-  const corner = (tr)=>`<g transform="${tr}"><path d="M0 92 V0 H92" fill="none" stroke="${G}" stroke-width="5"/><path d="M12 60 V12 H60" fill="none" stroke="${G}" stroke-width="1.5"/><circle cx="0" cy="0" r="6" fill="${G}"/><path d="M26 30 C42 20 58 32 54 52 C36 54 24 46 26 30Z" fill="none" stroke="${GOLD}" stroke-width="2.5"/></g>`;
+  const side = `
+    <path d="M0 0 H178 C130 120 60 215 62 390 C64 560 140 670 192 760 H0 Z" fill="${G}"/>
+    <path d="M178 0 C130 120 60 215 62 390 C64 560 140 670 192 760" fill="none" stroke="url(#gd)" stroke-width="8"/>
+    <path d="M198 0 C150 120 84 215 86 390 C88 560 158 670 210 760" fill="none" stroke="url(#gd)" stroke-width="3" opacity=".8"/>
+    <path d="M168 0 C120 120 50 215 52 390 C54 560 130 670 182 760" fill="none" stroke="#e9c75a" stroke-width="1.5" opacity=".7"/>`;
   let pts=[]; for(let k=0;k<48;k++){ const a=k*Math.PI/24, r=k%2?43:50; pts.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
   let star=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?8:19; star.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
   const sig = (x,role,who)=>`<text x="${x}" y="738" text-anchor="middle" font-size="19" font-style="italic" fill="#111">${certEsc(who)}</text>
-    <line x1="${x-125}" x2="${x+125}" y1="750" y2="750" stroke="${G}" stroke-width="2"/>
+    <line x1="${x-115}" x2="${x+115}" y1="750" y2="750" stroke="${G}" stroke-width="2"/>
     <text x="${x}" y="774" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">${role}</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1202 850" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
     <defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d36b"/><stop offset=".5" stop-color="#c8940f"/><stop offset="1" stop-color="#f0cd5c"/></linearGradient></defs>
     <rect width="1202" height="850" fill="#fbfbf8"/>
     <image href="${crest}" x="381" y="230" width="440" height="440" opacity=".07" preserveAspectRatio="xMidYMid meet"/>
-    <rect x="14" y="14" width="1174" height="822" fill="none" stroke="${G}" stroke-width="14"/>
-    <rect x="34" y="34" width="1134" height="782" fill="none" stroke="url(#gd)" stroke-width="3"/>
-    <rect x="44" y="44" width="1114" height="762" fill="none" stroke="${G}" stroke-width="1.5"/>
-    ${corner('translate(66,66)')}${corner('translate(1136,66) scale(-1,1)')}${corner('translate(66,784) scale(1,-1)')}${corner('translate(1136,784) scale(-1,-1)')}
+    <g transform="scale(1.113,1.118)">${side}</g><g transform="translate(1202,0) scale(-1.113,1.118)">${side}</g>
     <image href="${crest}" x="541" y="50" width="120" height="112" preserveAspectRatio="xMidYMid meet"/>
     <text x="601" y="204" text-anchor="middle" font-size="36" font-weight="900" fill="${G}" letter-spacing="5" textLength="760" lengthAdjust="spacingAndGlyphs">${certEsc((state.school.name||'ASUOM SENIOR HIGH SCHOOL').toUpperCase())}</text>
     <text x="601" y="270" text-anchor="middle" font-size="62" font-weight="900" fill="${GOLD}" stroke="${G}" stroke-width="3" paint-order="stroke" textLength="900" lengthAdjust="spacingAndGlyphs">CERTIFICATE OF ACHIEVEMENT</text>
@@ -5228,8 +5229,8 @@ function certAwardSVG(st, item, cs){
     <polygon points="601,285 610,294 601,303 592,294" fill="${GOLD}"/>
     <text x="601" y="334" text-anchor="middle" font-size="22" font-style="italic" fill="#333" letter-spacing="1.5">This certificate is proudly awarded to</text>
     <text x="601" y="406" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="#111" letter-spacing="3">${name}</text>
-    <line x1="230" x2="972" y1="428" y2="428" stroke="${G}" stroke-width="2"/>
-    <polygon points="230,423 235,428 230,433 225,428" fill="${G}"/><polygon points="972,423 977,428 972,433 967,428" fill="${G}"/>
+    <line x1="250" x2="952" y1="428" y2="428" stroke="${G}" stroke-width="2"/>
+    <polygon points="250,423 255,428 250,433 245,428" fill="${G}"/><polygon points="952,423 957,428 952,433 947,428" fill="${G}"/>
     <text x="601" y="468" text-anchor="middle" font-size="25" font-weight="700" fill="${G}" letter-spacing="2">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
     <text x="601" y="506" text-anchor="middle" font-size="20" font-style="italic" fill="#333" letter-spacing="1.5">in recognition of outstanding academic performance as the</text>
     <rect x="190" y="524" width="822" height="70" rx="6" fill="${G}"/><rect x="198" y="532" width="806" height="54" rx="3" fill="none" stroke="#f3d36b" stroke-width="1.5"/>
@@ -5238,7 +5239,7 @@ function certAwardSVG(st, item, cs){
     <polygon points="${pts.join(' ')}" fill="url(#gd)"/><circle cx="601" cy="692" r="36" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
     <line x1="501" x2="701" y1="772" y2="772" stroke="${G}" stroke-width="2"/><text x="601" y="794" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">DATE</text>
     <polygon points="${star.join(' ')}" fill="url(#gd)"/>
-    ${sig(300,'HEADMASTER',cs.head)}${sig(902,'ASST. HEAD ACADEMICS',cs.acad)}
+    ${sig(340,'HEADMASTER',cs.head)}${sig(862,'ASST. HEAD ACADEMICS',cs.acad)}
   </svg>`;
 }
 let certCtx = null;
