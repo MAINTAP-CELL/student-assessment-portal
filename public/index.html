@@ -4453,6 +4453,7 @@ RENDER.termSettings = function(){
           <div>
             <input type="file" accept="image/*" onchange="tsSignatureInput(this,'head','ts-sig-head-prev')"/>
             <button type="button" class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="tsClearSignature('head','ts-sig-head-prev')">Remove signature</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="pendingSig.head=HEAD_SIGNATURE; tsShowSig('head'); toast('Headmaster signature restored — click Save Term Settings to keep it.');">Use saved signature</button>
           </div>
         </div>
       </div>
@@ -4524,7 +4525,7 @@ function tsLoadForm(){
   document.getElementById('ts-promoted').value = ts.promotedTo || '';
   document.getElementById('ts-academic').value = ts.assistHeadAcademic || '';
   document.getElementById('ts-headmaster').value = ts.headmaster || '';
-  pendingSig = { assist: ts.assistSignature || null, head: ts.headSignature || null };
+  pendingSig = { assist: ts.assistSignature || null, head: ts.headSignature || HEAD_SIGNATURE }; // the Headmaster's signature is pre-filled; click Save Term Settings to keep it for this class
   tsShowSig('assist'); tsShowSig('head');
 }
 function isoFromDisplayDate(d){
