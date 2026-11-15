@@ -651,7 +651,7 @@ function studentScoredYears(student, subject){
 
 const MASTER_SUBJECTS = [
   'English Language','Mathematics','General Science','Social Studies','Additional Mathematics','Biology','Chemistry',
-  'Physics','Computing','Computer Science','ICT','French','Twi(Akuapem)','History','Government','Christian Religious Studies',
+  'Physics','Computing','Computer Science','Information & Communication Technology','French','Twi(Akuapem)','History','Government','Christian Religious Studies',
   'Literature in English','Music','Economics','Geography','Accounting','Business Studies-Management','Art and Design Foundation',
   'Art and Design Studio','Design & Communication','Clothing and Textiles','Foods and Nutrition',
   'Management in Living','Agriculture','Physical Education & Health'
@@ -661,7 +661,7 @@ const SUBJECT_POOL = {
   CORE: ['English Language','Mathematics','General Science','Social Studies','Physical Education & Health'],
   'SCIENCE': ['Biology','Chemistry','Physics','Additional Mathematics','Computing'],
   'GENERAL ARTS': ['Government','History','Geography','Literature in English','French','Economics','Christian Religious Studies'],
-  'BUSINESS': ['Accounting','Business Studies-Management','Economics','ICT'],
+  'BUSINESS': ['Accounting','Business Studies-Management','Economics','Information & Communication Technology'],
   'APPLIED TECHNOLOGY': ['Design & Communication','Physics','Chemistry','Additional Mathematics'],
   'HOME ECONOMICS': ['Foods and Nutrition','Management in Living','Clothing and Textiles','Chemistry'],
   'VISUAL AND PERFORMING ARTS': ['Art and Design Foundation','Art and Design Studio','Music','Literature in English'],
@@ -670,10 +670,10 @@ const SUBJECT_POOL = {
   'GLOBAL STUDIES': ['Government','Geography','History','Economics'],
   'ENGINEERING': ['Design & Communication','Physics','Additional Mathematics','Chemistry'],
   'BIOMEDICAL': ['Biology','Chemistry','Physics','Additional Mathematics'],
-  'MANUFACTURING': ['Design & Communication','Physics','Chemistry','ICT'],
-  'INFORMATION TECHNOLOGY': ['Computer Science','ICT','Computing','Additional Mathematics','Physics'],
-  'COMPUTER SCIENCE': ['Computer Science','ICT','Computing','Additional Mathematics','Physics'],
-  'AVIATION & AEROSPACE': ['Physics','Additional Mathematics','Chemistry','ICT'],
+  'MANUFACTURING': ['Design & Communication','Physics','Chemistry','Information & Communication Technology'],
+  'INFORMATION TECHNOLOGY': ['Computer Science','Information & Communication Technology','Computing','Additional Mathematics','Physics'],
+  'COMPUTER SCIENCE': ['Computer Science','Information & Communication Technology','Computing','Additional Mathematics','Physics'],
+  'AVIATION & AEROSPACE': ['Physics','Additional Mathematics','Chemistry','Information & Communication Technology'],
 };
 
 let state = {
@@ -900,7 +900,7 @@ async function loadPhotos(){
   }
 }
 /* Subjects renamed since data was first saved: bring existing classes, scores, overalls and teacher assignments across */
-const SUBJECT_RENAMES = { 'Business Management': 'Business Studies-Management' };
+const SUBJECT_RENAMES = { 'Business Management': 'Business Studies-Management', 'ICT': 'Information & Communication Technology' };
 function migrateSubjectNames(){
   const mv = (o, from, to)=>{ if(o && Object.prototype.hasOwnProperty.call(o, from)){ if(!(to in o)) o[to] = o[from]; delete o[from]; } };
   Object.keys(SUBJECT_RENAMES).forEach(from=>{
