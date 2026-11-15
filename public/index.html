@@ -196,8 +196,13 @@
   @media print{ .site-footer{ display:none !important; } }
   .cert-sheet{ width:100%; max-width:1000px; aspect-ratio:297/210; margin:0 auto 18px; box-shadow:0 2px 12px rgba(0,0,0,.25); background:#fff; }
   .cert-sheet svg{ width:100%; height:100%; display:block; }
+  .cert-sheet{ position:relative; }
+  .cert-one{ position:absolute; top:10px; right:10px; z-index:2; font-size:12px; padding:6px 12px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
   @media print{
     body.print-certs .cert-bar{ display:none !important; }
+    body.print-certs .cert-one{ display:none !important; }
+    body.print-certs.cert-solo .cert-sheet{ page-break-after:auto !important; break-after:auto !important; }
+    body.print-certs .cert-sheet:not(.print-this){ display:none !important; }
     body.print-certs .card{ padding:0 !important; border:0 !important; box-shadow:none !important; }
     body.print-certs .cert-sheet{ width:297mm; height:209.5mm; max-width:none; margin:0; box-shadow:none; page-break-after:always; break-after:page; overflow:hidden; }
     body.print-certs .cert-sheet:last-child{ page-break-after:auto; break-after:auto; }
@@ -5245,7 +5250,8 @@ function certAwardSVG(st, item, cs){
 let certCtx = null;
 function certItemsHTML(){
   const cs = certSettings();
-  return certCtx.items.map(it=>`<div class="cert-sheet">${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
+  const one = certCtx.items.length > 1;
+  return certCtx.items.map((it,i)=>`<div class="cert-sheet" data-ci="${i}">${one ? `<button class="btn btn-gold cert-one" onclick="printCertificates(${i})">⬇ Download this certificate</button>` : ''}${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
 }
 function openCertViewer(boxId, items, kind, backFn){
   if(!items.length){ toast('No students to print certificates for yet.', true); return; }
@@ -5269,15 +5275,17 @@ function openCertViewer(boxId, items, kind, backFn){
 }
 function certRefresh(){ certSettingsFromForm(); const p = document.getElementById('cert-pages'); if(p) p.innerHTML = certItemsHTML(); }
 function certBack(){ if(certCtx && certCtx.backFn) certCtx.backFn(); }
-function printCertificates(){
+function printCertificates(only){
   certRefresh();
+  const one = (typeof only === 'number') ? certCtx.items[only] : null;
+  document.querySelectorAll('.cert-sheet').forEach(el=> el.classList.toggle('print-this', !one || +el.dataset.ci === only));
   let styleEl = document.getElementById('dynamic-page-size');
   if(!styleEl){ styleEl = document.createElement('style'); styleEl.id='dynamic-page-size'; document.head.appendChild(styleEl); }
   styleEl.textContent = '@page{ size: A4 landscape; margin: 0; }';
   const old = document.title;
-  document.title = certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
-  document.body.classList.add('print-certs');
-  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-certs'); document.title = old; }, { once:true });
+  document.title = one ? `${fullName(one.st)} - ${one.st.class} - Certificate` : certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
+  document.body.classList.add('print-certs'); document.body.classList.toggle('cert-solo', !!one);
+  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-certs','cert-solo'); document.title = old; }, { once:true });
   setTimeout(()=> window.print(), 200);
 }
 /* Academic Awards: rowIdx = one award row (winnerIdx = one winner), or none = every award winner */
