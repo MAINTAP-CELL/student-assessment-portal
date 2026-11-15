@@ -5218,8 +5218,8 @@ function certAwardSVG(st, item, cs){
     <path d="M178 0 C130 120 60 215 62 390 C64 560 140 670 192 760" fill="none" stroke="url(#gd)" stroke-width="8"/>
     <path d="M198 0 C150 120 84 215 86 390 C88 560 158 670 210 760" fill="none" stroke="url(#gd)" stroke-width="3" opacity=".8"/>
     <path d="M168 0 C120 120 50 215 52 390 C54 560 130 670 182 760" fill="none" stroke="#e9c75a" stroke-width="1.5" opacity=".7"/>`;
-  let pts=[]; for(let k=0;k<48;k++){ const a=k*Math.PI/24, r=k%2?43:50; pts.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
-  let star=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?8:19; star.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
+  let pts=[]; for(let k=0;k<48;k++){ const a=k*Math.PI/24, r=k%2?31:36; pts.push((601+r*Math.cos(a)).toFixed(1)+','+(672+r*Math.sin(a)).toFixed(1)); }
+  let star=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?6:14; star.push((601+r*Math.cos(a)).toFixed(1)+','+(672+r*Math.sin(a)).toFixed(1)); }
   const sig = (x,role,who)=>`${role==='HEADMASTER' ? `<image href="${HEAD_SIGNATURE}" x="${x-100}" y="692" width="200" height="58" preserveAspectRatio="xMidYMax meet"/>` : ''}<line x1="${x-115}" x2="${x+115}" y1="750" y2="750" stroke="${G}" stroke-width="2"/>
     <text x="${x}" y="772" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">${role}</text>
     <text x="${x}" y="796" text-anchor="middle" font-size="17" font-weight="700" fill="#111" letter-spacing=".5">${certEsc(who)}</text>`;
@@ -5242,7 +5242,8 @@ function certAwardSVG(st, item, cs){
     <rect x="190" y="524" width="822" height="70" rx="6" fill="${G}"/><rect x="198" y="532" width="806" height="54" rx="3" fill="none" stroke="#f3d36b" stroke-width="1.5"/>
     <text x="601" y="${559 + Math.round(tSize*0.35)}" text-anchor="middle" font-size="${tSize}" font-weight="900" fill="#fff" letter-spacing="2">${certEsc(title)}</text>
     <text x="601" y="632" text-anchor="middle" font-size="17" font-weight="700" fill="${G}" letter-spacing="2">FIRST &amp; SECOND SEMESTERS, ${certEsc(cs.year)} ACADEMIC YEAR</text>
-    <polygon points="${pts.join(' ')}" fill="url(#gd)"/><circle cx="601" cy="692" r="36" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
+    <polygon points="590,690 574,734 590,727 603,738 609,694" fill="${G}"/><polygon points="612,690 628,734 612,727 599,738 593,694" fill="${G}"/>
+    <polygon points="${pts.join(' ')}" fill="url(#gd)"/><circle cx="601" cy="672" r="26" fill="${G}" stroke="#f3d36b" stroke-width="2.5"/>
     <line x1="501" x2="701" y1="772" y2="772" stroke="${G}" stroke-width="2"/><text x="601" y="794" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">DATE</text>
     <text x="601" y="758" text-anchor="middle" font-size="18" font-style="italic" font-weight="700" fill="#111" letter-spacing="1">${certEsc(cs.date||'')}</text>
     <polygon points="${star.join(' ')}" fill="url(#gd)"/>
