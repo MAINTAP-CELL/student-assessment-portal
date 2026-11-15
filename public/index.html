@@ -1299,6 +1299,7 @@ function fitWideTablesToPage(){
     const table = wrap.querySelector('table');
     if(!table) return;
     table.style.transform = 'none';
+    table.style.zoom = '';
     table.style.width = '';
     wrap.style.height = 'auto';
     const naturalWidth = table.scrollWidth, naturalHeight = table.scrollHeight;
@@ -1313,13 +1314,13 @@ function fitWideTablesToPage(){
       if(heightScale < scale && heightScale >= 0.5) scale = heightScale;
     }
     if(scale < 1){
-      table.style.transformOrigin = 'top left';
-      table.style.transform = `scale(${scale})`;
-      table.style.width = naturalWidth + 'px';
-      wrap.style.height = (naturalHeight * scale) + 'px';
+      // zoom (not transform): it changes the real layout size, so long tables split across pages properly
+      // and the next class's heading can never be drawn over this class's rows
+      table.style.zoom = scale;
+      wrap.style.height = 'auto';
       wrap.style.width = Math.min(PRINTABLE_WIDTH_PX, naturalWidth * scale) + 'px';
       wrap.style.margin = '0 auto';
-      wrap.style.overflow = 'hidden';
+      wrap.style.overflow = 'visible';
     } else {
       wrap.style.height = 'auto';
       wrap.style.overflow = 'visible';
@@ -1328,7 +1329,7 @@ function fitWideTablesToPage(){
 }
 window.addEventListener('afterprint', ()=>{
   document.body.classList.remove('print-summary-fit');
-  document.querySelectorAll('.sr-table-wrap table').forEach(t=>{ t.style.transform='none'; t.style.width=''; });
+  document.querySelectorAll('.sr-table-wrap table').forEach(t=>{ t.style.transform='none'; t.style.zoom=''; t.style.width=''; });
   document.querySelectorAll('.sr-table-wrap').forEach(w=>{ w.style.height='auto'; w.style.width=''; w.style.margin=''; w.style.overflow='auto'; });
 });
 document.getElementById('modal-backdrop').addEventListener('click', e=>{
