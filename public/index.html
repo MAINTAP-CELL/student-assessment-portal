@@ -652,7 +652,7 @@ function studentScoredYears(student, subject){
 const MASTER_SUBJECTS = [
   'English Language','Mathematics','General Science','Social Studies','Additional Mathematics','Biology','Chemistry',
   'Physics','Computing','Computer Science','ICT','French','Twi(Akuapem)','History','Government','Christian Religious Studies',
-  'Literature in English','Music','Economics','Geography','Accounting','Business Management','Art and Design Foundation',
+  'Literature in English','Music','Economics','Geography','Accounting','Business Studies-Management','Art and Design Foundation',
   'Art and Design Studio','Design & Communication','Clothing and Textiles','Foods and Nutrition',
   'Management in Living','Agriculture','Physical Education & Health'
 ];
@@ -661,7 +661,7 @@ const SUBJECT_POOL = {
   CORE: ['English Language','Mathematics','General Science','Social Studies','Physical Education & Health'],
   'SCIENCE': ['Biology','Chemistry','Physics','Additional Mathematics','Computing'],
   'GENERAL ARTS': ['Government','History','Geography','Literature in English','French','Economics','Christian Religious Studies'],
-  'BUSINESS': ['Accounting','Business Management','Economics','ICT'],
+  'BUSINESS': ['Accounting','Business Studies-Management','Economics','ICT'],
   'APPLIED TECHNOLOGY': ['Design & Communication','Physics','Chemistry','Additional Mathematics'],
   'HOME ECONOMICS': ['Foods and Nutrition','Management in Living','Clothing and Textiles','Chemistry'],
   'VISUAL AND PERFORMING ARTS': ['Art and Design Foundation','Art and Design Studio','Music','Literature in English'],
@@ -899,10 +899,23 @@ async function loadPhotos(){
     }catch(e){ return; }
   }
 }
+/* Subjects renamed since data was first saved: bring existing classes, scores, overalls and teacher assignments across */
+const SUBJECT_RENAMES = { 'Business Management': 'Business Studies-Management' };
+function migrateSubjectNames(){
+  const mv = (o, from, to)=>{ if(o && Object.prototype.hasOwnProperty.call(o, from)){ if(!(to in o)) o[to] = o[from]; delete o[from]; } };
+  Object.keys(SUBJECT_RENAMES).forEach(from=>{
+    const to = SUBJECT_RENAMES[from];
+    (state.classes||[]).forEach(c=>{ if(Array.isArray(c.subjects)) c.subjects = [...new Set(c.subjects.map(x=> x===from ? to : x))]; });
+    (state.students||[]).forEach(st=> SUB_KEYS.forEach(k=> mv(st[k], from, to)));
+    (state.users||[]).forEach(u=> (u.assigned||[]).forEach(a=>{ if(a.subject===from) a.subject = to; }));
+    Object.keys(state.assessmentOveralls||{}).forEach(k=>{ const p = k.split('||'); if(p[1]===from){ p[1] = to; mv(state.assessmentOveralls, k, p.join('||')); } });
+  });
+}
 async function applyData(d){
   applySettings(d);
   await loadStudents(d);
   takeSnap();
+  if(serverRole === 'admin') migrateSubjectNames(); // after the snapshot, so the renamed data is saved to the server automatically
   loadPhotos();
 }
 function computeChanges(){
@@ -5041,7 +5054,7 @@ function downloadSchoolMonitor(){
    ============================================================ */
 const AWARD_SUBJECTS = [
   ['ENGLISH LANGUAGE', /^english/i], ['MATHEMATICS', /^(core )?mathematics$/i], ['GENERAL SCIENCE', /^(integrated|general) science$/i],
-  ['SOCIAL STUDIES', /^social studies/i], ['ACCOUNTING', /accounting/i], ['BUSINESS MANAGEMENT', /business management/i],
+  ['SOCIAL STUDIES', /^social studies/i], ['ACCOUNTING', /accounting/i], ['BUSINESS STUDIES-MANAGEMENT', /business (management|studies)/i],
   ['ADDITIONAL MATHEMATICS', /(additional|elective) math/i], ['AGRICULTURE', /^agric/i], ['CHEMISTRY', /^chemistry/i],
   ['PHYSICS', /^physics/i], ['BIOLOGY', /^biology/i], ['ARTS AND DESIGN FOUNDATION', /art(s)? and design foundation/i],
   ['DESIGN & COMMUNICATION', /design (and|&) communication/i], ['CLOTHING AND TEXTILE', /clothing and textile/i],
