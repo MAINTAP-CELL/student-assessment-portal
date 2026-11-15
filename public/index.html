@@ -4105,19 +4105,22 @@ function remarkForGrade(interp){
 function terminalNarrative(role, avg){
   if(role==='house'){
     if(avg>=80) return 'Exemplary conduct and outstanding academic performance this term.';
-    if(avg>=70) return 'Good academic performance, but there is more room for improvement.';
-    if(avg>=60) return 'Satisfactory performance but pay closer attention to time management.';
+    if(avg>=70) return 'Very good academic performance, but there is more room for improvement.';
+    if(avg>=60) return 'Good performance but pay closer attention to time management.';
+    if(avg>=50) return 'Fair performance; more effort and closer attention to time management are needed.';
     return 'Performance needs improvement; closer supervision is recommended next term.';
   }
   if(role==='academic'){
     if(avg>=80) return 'Excellent academic performance across most subjects. Keep it up.';
-    if(avg>=70) return 'Good academic performance but pay attention to the subject(s) you couldn\'t perform well in.';
-    if(avg>=60) return 'Fair performance; more consistent effort is required in weaker subjects.';
+    if(avg>=70) return 'Very good academic performance but pay attention to the subject(s) you couldn\'t perform well in.';
+    if(avg>=60) return 'Good performance; more consistent effort is required in weaker subjects.';
+    if(avg>=50) return 'Fair performance; much more effort is required in the weaker subjects.';
     return 'Performance is below expectation; extra academic support is advised.';
   }
   if(avg>=80) return 'Excellent academic performance. A commendable result this term.';
-  if(avg>=70) return 'Good academic performance but pay attention to the subjects with low grades.';
-  if(avg>=60) return 'Fair academic performance; there is room for improvement next term.';
+  if(avg>=70) return 'Very good academic performance but pay attention to the subjects with low grades.';
+  if(avg>=60) return 'Good academic performance; there is room for improvement next term.';
+  if(avg>=50) return 'Fair academic performance; more effort is needed next term.';
   return 'Academic performance requires urgent attention and support.';
 }
 
