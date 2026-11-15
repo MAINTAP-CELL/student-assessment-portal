@@ -2308,9 +2308,13 @@ RENDER.parentAccess = function(){
       <button class="btn btn-primary btn-sm" onclick="bulkSetParentAccess(true)">Enable access for filtered students</button>
       <button class="btn btn-ghost btn-sm" onclick="bulkSetParentAccess(false)">Disable access for filtered students</button>
     </div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin:-6px 0 16px;">
-      <button class="btn btn-primary btn-sm" onclick="bulkSetDocAccess(true)">Enable Transcript &amp; Terminal Report for all filtered students</button>
-      <button class="btn btn-ghost btn-sm" onclick="bulkSetDocAccess(false)">Disable Transcript &amp; Terminal Report for all filtered students</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin:-6px 0 10px;">
+      <button class="btn btn-primary btn-sm" onclick="bulkSetDocAccess('transcriptEnabled', true)">Enable Transcript for all filtered students</button>
+      <button class="btn btn-ghost btn-sm" onclick="bulkSetDocAccess('transcriptEnabled', false)">Disable Transcript for all filtered students</button>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin:0 0 16px;">
+      <button class="btn btn-primary btn-sm" onclick="bulkSetDocAccess('terminalReportEnabled', true)">Enable Terminal Report for all filtered students</button>
+      <button class="btn btn-ghost btn-sm" onclick="bulkSetDocAccess('terminalReportEnabled', false)">Disable Terminal Report for all filtered students</button>
     </div>
     <div class="card" style="overflow-x:auto;"><div id="pa-table"></div></div>
   `;
@@ -2533,13 +2537,13 @@ function toggleDocAccess(id, key){
   const label = key==='transcriptEnabled' ? 'Transcript' : 'Terminal Report';
   toast(`${label} access ${!current ? 'enabled':'disabled'} for ${fullName(s)}.`);
 }
-/* Transcript and Terminal Report switched on/off together for every student in the current filter (leave the filters on "All" to do the whole school) */
-function bulkSetDocAccess(enabled){
+/* Transcript or Terminal Report switched on/off for every student in the current filter (leave the filters on "All" to do the whole school) */
+function bulkSetDocAccess(key, enabled){
   const list = parentAccessFilterList();
   if(!list.length){ toast('No students match the current filter.', true); return; }
-  list.forEach(s=>{ s.parentAccess = Object.assign({ enabled:true }, s.parentAccess, { transcriptEnabled: enabled, terminalReportEnabled: enabled }); });
+  list.forEach(s=>{ s.parentAccess = Object.assign({ enabled:true, transcriptEnabled:true, terminalReportEnabled:true }, s.parentAccess); s.parentAccess[key] = enabled; });
   renderParentAccessTable();
-  toast(`Transcript and Terminal Report ${enabled?'enabled':'disabled'} for ${list.length} student(s).`);
+  toast(`${key==='transcriptEnabled' ? 'Transcript' : 'Terminal Report'} ${enabled?'enabled':'disabled'} for ${list.length} student(s).`);
 }
 function bulkSetParentAccess(enabled){
   const list = parentAccessFilterList();
