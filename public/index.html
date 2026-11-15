@@ -5219,9 +5219,9 @@ function certAwardSVG(st, item, cs){
     <path d="M168 0 C120 120 50 215 52 390 C54 560 130 670 182 760" fill="none" stroke="#e9c75a" stroke-width="1.5" opacity=".7"/>`;
   let pts=[]; for(let k=0;k<48;k++){ const a=k*Math.PI/24, r=k%2?43:50; pts.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
   let star=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?8:19; star.push((601+r*Math.cos(a)).toFixed(1)+','+(692+r*Math.sin(a)).toFixed(1)); }
-  const sig = (x,role,who)=>`<text x="${x}" y="738" text-anchor="middle" font-size="19" font-style="italic" fill="#111">${certEsc(who)}</text>
-    <line x1="${x-115}" x2="${x+115}" y1="750" y2="750" stroke="${G}" stroke-width="2"/>
-    <text x="${x}" y="774" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">${role}</text>`;
+  const sig = (x,role,who)=>`<line x1="${x-115}" x2="${x+115}" y1="750" y2="750" stroke="${G}" stroke-width="2"/>
+    <text x="${x}" y="772" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">${role}</text>
+    <text x="${x}" y="796" text-anchor="middle" font-size="17" font-weight="700" fill="#111" letter-spacing=".5">${certEsc(who)}</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1202 850" font-family="Georgia,'Times New Roman',serif" preserveAspectRatio="xMidYMid meet">
     <defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d36b"/><stop offset=".5" stop-color="#c8940f"/><stop offset="1" stop-color="#f0cd5c"/></linearGradient></defs>
     <rect width="1202" height="850" fill="#fbfbf8"/>
