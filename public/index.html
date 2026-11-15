@@ -622,15 +622,15 @@
    STATE
    ============================================================ */
 const GRADE_TABLE = [
-  {min:80,max:100,grade:'A1',points:4.0,interp:'EXCELLENT'},
-  {min:70,max:79, grade:'B2',points:3.5,interp:'VERY GOOD'},
-  {min:60,max:69, grade:'B3',points:3.0,interp:'GOOD'},
-  {min:55,max:59, grade:'C4',points:2.5,interp:'CREDIT'},
-  {min:50,max:54, grade:'C5',points:2.0,interp:'CREDIT'},
-  {min:45,max:49, grade:'C6',points:1.5,interp:'CREDIT'},
-  {min:40,max:44, grade:'D7',points:1.0,interp:'PASS'},
-  {min:35,max:39, grade:'E8',points:0.5,interp:'PASS'},
-  {min:0, max:34, grade:'F9',points:0.0,interp:'FAIL'},
+  {min:75,max:100,grade:'A1',points:4.0,interp:'EXCELLENT'},
+  {min:70,max:74, grade:'B2',points:3.5,interp:'VERY GOOD'},
+  {min:65,max:69, grade:'B3',points:3.0,interp:'GOOD'},
+  {min:60,max:64, grade:'C4',points:2.5,interp:'CREDIT'},
+  {min:55,max:59, grade:'C5',points:2.0,interp:'CREDIT'},
+  {min:50,max:54, grade:'C6',points:1.5,interp:'CREDIT'},
+  {min:45,max:49, grade:'D7',points:1.0,interp:'PASS'},
+  {min:40,max:44, grade:'E8',points:0.5,interp:'PASS'},
+  {min:0, max:39, grade:'F9',points:0.0,interp:'FAIL'},
 ];
 function gradeFor(score){
   score = Math.round(Number(score));
@@ -3885,15 +3885,15 @@ function qualitativeFor(s, year){
   const avg = Math.round(overall);
   const sorted = subjects.slice().sort((a,b)=>b.avg-a.avg);
   const best = sorted.slice(0, Math.min(2, sorted.length)).map(x=>x.name);
-  const weak = sorted.filter(x=> x.avg < 60 && !best.includes(x.name)).slice(-2).map(x=>x.name).reverse();
+  const weak = sorted.filter(x=> x.avg < 65 && !best.includes(x.name)).slice(-2).map(x=>x.name).reverse();
   let opening, closing;
-  if(avg >= 80){
+  if(avg >= 75){
     opening = `${name} was an outstanding student in ${year}, achieving an overall average of ${avg}%. ${P.sub} showed excellent mastery across ${P.pos} subjects, particularly in ${joinList(best)}.`;
     closing = `${P.sub} is highly commended and encouraged to sustain this exceptional standard.`;
   } else if(avg >= 70){
     opening = `${name} performed very well in ${year} with an overall average of ${avg}%. ${P.sub} was strongest in ${joinList(best)} and works diligently.`;
     closing = `With continued focus, higher levels are within reach.`;
-  } else if(avg >= 60){
+  } else if(avg >= 65){
     opening = `${name} had a good ${year} with an overall average of ${avg}%. ${P.sub} did best in ${joinList(best)}.`;
     closing = `Greater consistency across all subjects is encouraged.`;
   } else if(avg >= 50){
@@ -3903,7 +3903,7 @@ function qualitativeFor(s, year){
     opening = `${name}'s overall average in ${year} was ${avg}%, which is below the expected standard.`;
     closing = `Closer academic support and supervision are required to improve.`;
   }
-  const weakSentence = (weak.length && avg < 80) ? ` Special attention is needed in ${joinList(weak)}.` : '';
+  const weakSentence = (weak.length && avg < 75) ? ` Special attention is needed in ${joinList(weak)}.` : '';
   let trend = '';
   const order = ['Year 1','Year 2','Year 3'];
   const prevYear = order[order.indexOf(year)-1];
@@ -4104,22 +4104,22 @@ function remarkForGrade(interp){
 }
 function terminalNarrative(role, avg){
   if(role==='house'){
-    if(avg>=80) return 'Exemplary conduct and outstanding academic performance this term.';
+    if(avg>=75) return 'Exemplary conduct and outstanding academic performance this term.';
     if(avg>=70) return 'Very good academic performance, but there is more room for improvement.';
-    if(avg>=60) return 'Good performance but pay closer attention to time management.';
+    if(avg>=65) return 'Good performance but pay closer attention to time management.';
     if(avg>=50) return 'Fair performance; more effort and closer attention to time management are needed.';
     return 'Performance needs improvement; closer supervision is recommended next term.';
   }
   if(role==='academic'){
-    if(avg>=80) return 'Excellent academic performance across most subjects. Keep it up.';
+    if(avg>=75) return 'Excellent academic performance across most subjects. Keep it up.';
     if(avg>=70) return 'Very good academic performance but pay attention to the subject(s) you couldn\'t perform well in.';
-    if(avg>=60) return 'Good performance; more consistent effort is required in weaker subjects.';
+    if(avg>=65) return 'Good performance; more consistent effort is required in weaker subjects.';
     if(avg>=50) return 'Fair performance; much more effort is required in the weaker subjects.';
     return 'Performance is below expectation; extra academic support is advised.';
   }
-  if(avg>=80) return 'Excellent academic performance. A commendable result this term.';
+  if(avg>=75) return 'Excellent academic performance. A commendable result this term.';
   if(avg>=70) return 'Very good academic performance but pay attention to the subjects with low grades.';
-  if(avg>=60) return 'Good academic performance; there is room for improvement next term.';
+  if(avg>=65) return 'Good academic performance; there is room for improvement next term.';
   if(avg>=50) return 'Fair academic performance; more effort is needed next term.';
   return 'Academic performance requires urgent attention and support.';
 }
