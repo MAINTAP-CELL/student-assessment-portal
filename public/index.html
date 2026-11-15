@@ -5142,7 +5142,7 @@ function renderAwards(){
     <div class="report-powered">Powered by: VISION TECH</div>`;
 }
 /* ---------------- Achievers' Certificates ---------------- */
-const CERT_DEFAULTS = { year:'2025/2026', sem:'FIRST', patron:'EBENEZER YEBOAH', admin:'MRS. EVELYN O. DUAH', acad:'MR. EYRAM K. GBEDEMAH', head:'MR. ISAAC ADDO' };
+const CERT_DEFAULTS = { year:'2025/2026', sem:'FIRST', patron:'EBENEZER YEBOAH', admin:'MRS. EVELYN O. DUAH', acad:'MR. EYRAM K. GBEDEMAH', head:'MR. ISAAC ADDO', date:'27TH NOVEMBER, 2026' };
 function certSettings(){
   let saved = {};
   try{ saved = JSON.parse(localStorage.getItem('stp-cert-settings')||'{}') || {}; }catch(e){}
@@ -5151,7 +5151,7 @@ function certSettings(){
 function certSettingsFromForm(){
   const g = id=>{ const el=document.getElementById(id); return el ? el.value.trim() : ''; };
   const c = certSettings();
-  const v = { year:g('ct-year')||c.year, sem:g('ct-sem')||c.sem, patron:g('ct-patron')||c.patron, admin:g('ct-admin')||c.admin, acad:g('ct-acad')||c.acad, head:g('ct-head')||c.head };
+  const v = { year:g('ct-year')||c.year, sem:g('ct-sem')||c.sem, patron:g('ct-patron')||c.patron, admin:g('ct-admin')||c.admin, acad:g('ct-acad')||c.acad, head:g('ct-head')||c.head, date:g('ct-date')||c.date };
   try{ localStorage.setItem('stp-cert-settings', JSON.stringify(v)); }catch(e){}
   return v;
 }
@@ -5244,6 +5244,7 @@ function certAwardSVG(st, item, cs){
     <text x="601" y="632" text-anchor="middle" font-size="17" font-weight="700" fill="${G}" letter-spacing="2">FIRST &amp; SECOND SEMESTERS, ${certEsc(cs.year)} ACADEMIC YEAR</text>
     <polygon points="${pts.join(' ')}" fill="url(#gd)"/><circle cx="601" cy="692" r="36" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
     <line x1="501" x2="701" y1="772" y2="772" stroke="${G}" stroke-width="2"/><text x="601" y="794" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">DATE</text>
+    <text x="601" y="758" text-anchor="middle" font-size="18" font-style="italic" font-weight="700" fill="#111" letter-spacing="1">${certEsc(cs.date||'')}</text>
     <polygon points="${star.join(' ')}" fill="url(#gd)"/>
     ${sig(340,'HEADMASTER',cs.head)}${sig(862,'ASST. HEAD ACADEMICS',cs.acad)}
   </svg>`;
@@ -5266,6 +5267,7 @@ function openCertViewer(boxId, items, kind, backFn){
       <div class="field"><label>Academic year</label><input id="ct-year" value="${certEsc(cs.year)}" style="width:110px;"/></div>
       ${kind==='award' ? '' : `<div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
       <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>`}
+      ${kind==='award' ? `<div class="field"><label>Date</label><input id="ct-date" value="${certEsc(cs.date)}" style="width:170px;"/></div>` : ''}
       <div class="field"><label>Asst. Head Academics</label><input id="ct-acad" value="${certEsc(cs.acad)}"/></div>
       <div class="field"><label>Headmaster</label><input id="ct-head" value="${certEsc(cs.head)}"/></div>
       <button class="btn btn-ghost" onclick="certRefresh()">Apply</button>
