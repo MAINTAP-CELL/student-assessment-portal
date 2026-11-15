@@ -161,7 +161,11 @@
   .side-brand .t small{ display:block; font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:#9fb6a8; letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
 
   .nav-group{ margin-top:20px; }
-  .nav-group-label{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#88A093; padding:0 20px; margin-bottom:6px; }
+  .nav-group-label{ font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#E3C45A; padding:11px 20px; margin:0 0 4px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px; user-select:none; border-top:1px solid rgba(255,255,255,.08); border-bottom:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); }
+  .nav-group-label:hover{ background:rgba(255,255,255,.09); }
+  .nav-group-label::after{ content:''; width:7px; height:7px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); margin-top:-3px; transition:transform .15s; flex-shrink:0; }
+  .nav-group.collapsed .nav-group-label::after{ transform:rotate(-45deg); margin-top:0; }
+  .nav-group.collapsed .nav-item{ display:none !important; }
   .nav-item{
     display:flex; align-items:center; gap:10px; padding:9px 20px; font-size:13px; color:#D8D3BC;
     cursor:pointer; border-left:3px solid transparent; transition:background .12s;
@@ -549,8 +553,8 @@
       <div class="t">Student Assessment Portal<small>Ghana Education Service</small></div>
     </div>
 
-    <div class="nav-group">
-      <div class="nav-group-label">Navigation Menu</div>
+    <div class="nav-group" id="main-group">
+      <div class="nav-group-label">Student Assessment Portal</div>
       <div class="nav-item" data-view="dashboard" data-staff-only="1"><span class="dot"></span>Dashboard</div>
       <div class="nav-item" data-view="register" data-admin-only="1"><span class="dot"></span>Register Student</div>
       <div class="nav-item" data-view="captureSubject" data-staff-only="1"><span class="dot"></span>Capture Assessment (Per Subject)</div>
@@ -567,7 +571,7 @@
       <div class="nav-item" data-view="terminalReport" data-teacher-gate="1"><span class="dot"></span>SHS Terminal Report</div>
     </div>
 
-    <div class="nav-group" id="settings-group">
+    <div class="nav-group collapsed" id="settings-group">
       <div class="nav-group-label">Settings</div>
       <div class="nav-item" data-view="schoolInfo"><span class="dot"></span>Update School Info</div>
       <div class="nav-item" data-view="addUser"><span class="dot"></span>Add User</div>
@@ -1169,11 +1173,13 @@ const VIEW_TITLES = {
   manageUsers:'Manage Users', loginTrace:'Login Trace', backup:'Backup & Restore', addClass:'Add/Manage Classes', classSummary:'Class Summary Report',
   terminalReport:'SHS Terminal Report', termSettings:'Term Settings', userManual:'User Manual', achievers:'Achievers', studentRanking:'Student Performance Ranking', remedial:'Remedial/Intervention Students', schoolMonitor:'School Monitor', awards:'Academic Awards'
 };
+document.querySelectorAll('.nav-group-label').forEach(l=>{ l.addEventListener('click', ()=> l.parentElement.classList.toggle('collapsed')); });
 document.querySelectorAll('.nav-item').forEach(el=>{
   el.addEventListener('click', ()=>{ document.body.classList.remove('menu-open'); navigate(el.dataset.view); });
 });
 function navigate(view){
   document.querySelectorAll('.nav-item').forEach(el=> el.classList.toggle('active', el.dataset.view===view));
+  document.querySelectorAll('.nav-item.active').forEach(el=> el.parentElement.classList.remove('collapsed')); // open the section that holds the current page
   document.getElementById('crumb-current').textContent = VIEW_TITLES[view] || view;
   const c = document.getElementById('content');
   c.innerHTML = RENDER[view] ? RENDER[view]() : '<p>Not found.</p>';
