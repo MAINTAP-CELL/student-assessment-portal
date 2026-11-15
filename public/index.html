@@ -199,6 +199,9 @@
   .cert-sheet{ position:relative; }
   .cert-one{ position:absolute; top:10px; right:10px; z-index:2; font-size:12px; padding:6px 12px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
   @media print{
+    /* make sure the green/gold side panels, banner and every colour are printed/saved exactly as on screen */
+    body.print-certs, body.print-certs *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+    body.print-certs .cert-sheet svg{ background:#fbfbf8; }
     body.print-certs .cert-bar{ display:none !important; }
     body.print-certs .cert-one{ display:none !important; }
     body.print-certs.cert-solo .cert-sheet{ page-break-after:auto !important; break-after:auto !important; }
