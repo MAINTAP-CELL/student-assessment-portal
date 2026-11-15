@@ -442,10 +442,10 @@
     tr{ page-break-inside:avoid; page-break-after:auto; }
     .terminal-report{ page-break-inside:avoid; }
     .summary-report{ page-break-inside:avoid; }
-    /* every class summary sits on its own sheet; the next class always starts on a fresh page */
-    .csum-page{ page-break-after:always; break-after:page; page-break-inside:avoid; break-inside:avoid; }
-    .csum-page:last-child{ page-break-after:auto; break-after:auto; }
-    .csum-page .summary-report{ max-height:192mm; overflow:hidden !important; margin:0 !important; }
+    /* every class starts on a fresh page: a forced break BEFORE each class after the first, plus an empty page-break spacer */
+    .csum-page{ display:block; clear:both; }
+    .csum-page ~ .csum-page{ page-break-before:always; break-before:page; }
+    .csum-break{ display:block; height:0; margin:0; padding:0; border:0; page-break-after:always; break-after:page; }
     .transcript{ page-break-inside:avoid; }
     /* Extra shrink for wide reports when the admin chooses portrait, so every column still fits */
     body.print-portrait .sr-table-wrap table{ font-size:6px !important; }
@@ -1294,7 +1294,7 @@ function printLandscapeOnly(){
 function fitWideTablesToPage(){
   // A4 landscape with 8mm margins: 281mm x 194mm printable, at 96dpi; minus the report's inner padding
   const PRINTABLE_WIDTH_PX = 1020;
-  const PAGE_HEIGHT_PX = 680; // a little under the 733px printable height so a sheet never spills onto the next page
+  const PAGE_HEIGHT_PX = 725;
   document.querySelectorAll('#csum-box .sr-table-wrap, #rem-box .sr-table-wrap, #rank-box .sr-table-wrap, #ach-box .sr-table-wrap').forEach(wrap=>{
     const table = wrap.querySelector('table');
     if(!table) return;
@@ -1310,7 +1310,7 @@ function fitWideTablesToPage(){
       if(report) [...report.children].forEach(ch=>{ if(ch!==wrap) headH += ch.offsetHeight + 8; });
       const availH = Math.max(200, PAGE_HEIGHT_PX - headH - 40);
       const heightScale = availH / naturalHeight;
-      if(heightScale < scale) scale = Math.max(0.3, heightScale); // always keep one class on one sheet
+      if(heightScale < scale && heightScale >= 0.5) scale = heightScale;
     }
     if(scale < 1){
       table.style.transformOrigin = 'top left';
@@ -4064,7 +4064,7 @@ function printAllClassSummaries(){
   if(!blocks.length){ toast(`No class in ${area} — ${year} has students with scores captured yet.`, true); return; }
 
   const box = document.getElementById('csum-box');
-  box.innerHTML = blocks.join('');
+  box.innerHTML = blocks.join('<div class="csum-break"></div>');
   toast(`Prepared ${blocks.length} class summary report(s) for ${area} — ${year}${skipped ? `, ${skipped} skipped (no scores yet)` : ''}. Opening print dialog…`);
   setTimeout(()=> printLandscapeOnly(), 300);
 }
