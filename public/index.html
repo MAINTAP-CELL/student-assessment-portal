@@ -197,7 +197,8 @@
   .cert-sheet{ width:100%; max-width:1000px; aspect-ratio:297/210; margin:0 auto 18px; box-shadow:0 2px 12px rgba(0,0,0,.25); background:#fff; }
   .cert-sheet svg{ width:100%; height:100%; display:block; }
   .cert-sheet{ position:relative; }
-  .cert-one{ position:absolute; top:10px; right:10px; z-index:2; font-size:12px; padding:6px 12px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+  .cert-one{ position:absolute; top:10px; right:10px; z-index:2; display:flex; gap:6px; }
+  .cert-one .btn{ font-size:12px; padding:6px 12px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
   @media print{
     /* make sure the green/gold side panels, banner and every colour are printed/saved exactly as on screen */
     body.print-certs, body.print-certs *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
@@ -5258,7 +5259,7 @@ let certCtx = null;
 function certItemsHTML(){
   const cs = certSettings();
   const one = certCtx.items.length > 1;
-  return certCtx.items.map((it,i)=>`<div class="cert-sheet" data-ci="${i}">${one ? `<button class="btn btn-gold cert-one" onclick="printCertificates(${i})">⬇ Download this certificate</button>` : ''}${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
+  return certCtx.items.map((it,i)=>`<div class="cert-sheet" data-ci="${i}"><span class="cert-one"><button class="btn btn-gold" onclick="downloadCertImage(${i})">⬇ Download certificate</button> ${one ? `<button class="btn btn-ghost" onclick="printCertificates(${i})">🖨 Print / PDF</button>` : ''}</span>${certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs)}</div>`).join('');
 }
 function openCertViewer(boxId, items, kind, backFn){
   if(!items.length){ toast('No students to print certificates for yet.', true); return; }
@@ -5283,6 +5284,26 @@ function openCertViewer(boxId, items, kind, backFn){
 }
 function certRefresh(){ certSettingsFromForm(); const p = document.getElementById('cert-pages'); if(p) p.innerHTML = certItemsHTML(); }
 function certBack(){ if(certCtx && certCtx.backFn) certCtx.backFn(); }
+/* Saves one certificate as a full-colour picture (PNG) — works on any browser or phone and keeps every colour exactly as shown */
+function downloadCertImage(i){
+  const it = certCtx && certCtx.items[i]; if(!it) return;
+  const cs = certSettings();
+  const svg = certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs);
+  const vb = (svg.match(/viewBox="0 0 (\d+) (\d+)"/)||[0,1202,850]), W = +vb[1]*2, H = +vb[2]*2;
+  const img = new Image();
+  img.onload = ()=>{
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d'); ctx.fillStyle = '#fbfbf8'; ctx.fillRect(0,0,W,H); ctx.drawImage(img, 0, 0, W, H);
+    cv.toBlob(b=>{
+      if(!b){ toast('Could not create the image. Use Print / PDF instead.', true); return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+      a.download = `${fullName(it.st)} - ${it.st.class} - Certificate.png`.replace(/[\\/:*?"<>|]/g,'');
+      document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    }, 'image/png');
+  };
+  img.onerror = ()=> toast('Could not create the image. Use Print / PDF instead.', true);
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace('<svg ', `<svg width="${W}" height="${H}" `));
+}
 function printCertificates(only){
   certRefresh();
   const one = (typeof only === 'number') ? certCtx.items[only] : null;
