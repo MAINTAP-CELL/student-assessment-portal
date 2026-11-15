@@ -195,7 +195,7 @@
   .site-footer .sf-right{ text-align:right; }
   @media print{ .site-footer{ display:none !important; } }
   .cert-sheet{ width:100%; max-width:1000px; aspect-ratio:297/210; margin:0 auto 18px; box-shadow:0 2px 12px rgba(0,0,0,.25); background:#fff; }
-  .cert-sheet svg{ width:100%; height:100%; display:block; }
+  .cert-sheet svg, .cert-sheet .cert-print-img{ width:100%; height:100%; display:block; }
   .cert-sheet{ position:relative; }
   .cert-one{ position:absolute; top:10px; right:10px; z-index:2; display:flex; gap:6px; }
   .cert-one .btn{ font-size:12px; padding:6px 12px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
@@ -5285,24 +5285,32 @@ function openCertViewer(boxId, items, kind, backFn){
 function certRefresh(){ certSettingsFromForm(); const p = document.getElementById('cert-pages'); if(p) p.innerHTML = certItemsHTML(); }
 function certBack(){ if(certCtx && certCtx.backFn) certCtx.backFn(); }
 /* Saves one certificate as a full-colour picture (PNG) — works on any browser or phone and keeps every colour exactly as shown */
+function certSvgFor(it){
+  const cs = certSettings();
+  return certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs);
+}
+function certToPNG(it){
+  return new Promise((resolve, reject)=>{
+    const svg = certSvgFor(it);
+    const vb = (svg.match(/viewBox="0 0 (\d+) (\d+)"/)||[0,1202,850]), W = +vb[1]*2, H = +vb[2]*2;
+    const img = new Image();
+    img.onload = ()=>{
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#fbfbf8'; ctx.fillRect(0,0,W,H); ctx.drawImage(img, 0, 0, W, H);
+      resolve(cv);
+    };
+    img.onerror = ()=> reject(new Error('image'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace('<svg ', `<svg width="${W}" height="${H}" `));
+  });
+}
 function downloadCertImage(i){
   const it = certCtx && certCtx.items[i]; if(!it) return;
-  const cs = certSettings();
-  const svg = certCtx.kind==='award' ? certAwardSVG(it.st, it, cs) : certSVG(it.st, '', it.form, cs);
-  const vb = (svg.match(/viewBox="0 0 (\d+) (\d+)"/)||[0,1202,850]), W = +vb[1]*2, H = +vb[2]*2;
-  const img = new Image();
-  img.onload = ()=>{
-    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    const ctx = cv.getContext('2d'); ctx.fillStyle = '#fbfbf8'; ctx.fillRect(0,0,W,H); ctx.drawImage(img, 0, 0, W, H);
-    cv.toBlob(b=>{
-      if(!b){ toast('Could not create the image. Use Print / PDF instead.', true); return; }
-      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-      a.download = `${fullName(it.st)} - ${it.st.class} - Certificate.png`.replace(/[\\/:*?"<>|]/g,'');
-      document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-    }, 'image/png');
-  };
-  img.onerror = ()=> toast('Could not create the image. Use Print / PDF instead.', true);
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace('<svg ', `<svg width="${W}" height="${H}" `));
+  certToPNG(it).then(cv=> cv.toBlob(b=>{
+    if(!b){ toast('Could not create the image.', true); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = `${fullName(it.st)} - ${it.st.class} - Certificate.png`.replace(/[\\/:*?"<>|]/g,'');
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }, 'image/png')).catch(()=> toast('Could not create the image.', true));
 }
 function printCertificates(only){
   certRefresh();
@@ -5314,8 +5322,15 @@ function printCertificates(only){
   const old = document.title;
   document.title = one ? `${fullName(one.st)} - ${one.st.class} - Certificate` : certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
   document.body.classList.add('print-certs'); document.body.classList.toggle('cert-solo', !!one);
-  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-certs','cert-solo'); document.title = old; }, { once:true });
-  setTimeout(()=> window.print(), 200);
+  let restored = false;
+  const restore = ()=>{ if(restored) return; restored = true; document.body.classList.remove('print-certs','cert-solo'); document.title = old; certRefresh(); };
+  window.addEventListener('afterprint', restore, { once:true });
+  // Print the certificates as full-colour pictures: a picture always prints with exactly the colours shown on screen
+  const sheets = [...document.querySelectorAll('.cert-sheet')].filter(el=> el.classList.contains('print-this'));
+  toast('Preparing certificate' + (sheets.length>1 ? 's' : '') + ' for printing…');
+  Promise.all(sheets.map(el=> certToPNG(certCtx.items[+el.dataset.ci]).then(cv=>{ el.innerHTML = `<img class="cert-print-img" src="${cv.toDataURL('image/png')}"/>`; })))
+    .then(()=> setTimeout(()=> window.print(), 300))
+    .catch(()=>{ setTimeout(()=> window.print(), 200); }); // falls back to printing the drawing itself
 }
 /* Academic Awards: rowIdx = one award row (winnerIdx = one winner), or none = every award winner */
 function showAwardCertificates(rowIdx, winnerIdx){
