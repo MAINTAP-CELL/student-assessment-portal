@@ -442,6 +442,10 @@
     tr{ page-break-inside:avoid; page-break-after:auto; }
     .terminal-report{ page-break-inside:avoid; }
     .summary-report{ page-break-inside:avoid; }
+    /* every class summary sits on its own sheet; the next class always starts on a fresh page */
+    .csum-page{ page-break-after:always; break-after:page; page-break-inside:avoid; break-inside:avoid; }
+    .csum-page:last-child{ page-break-after:auto; break-after:auto; }
+    .csum-page .summary-report{ max-height:192mm; overflow:hidden !important; margin:0 !important; }
     .transcript{ page-break-inside:avoid; }
     /* Extra shrink for wide reports when the admin chooses portrait, so every column still fits */
     body.print-portrait .sr-table-wrap table{ font-size:6px !important; }
@@ -1290,7 +1294,7 @@ function printLandscapeOnly(){
 function fitWideTablesToPage(){
   // A4 landscape with 8mm margins: 281mm x 194mm printable, at 96dpi; minus the report's inner padding
   const PRINTABLE_WIDTH_PX = 1020;
-  const PAGE_HEIGHT_PX = 725;
+  const PAGE_HEIGHT_PX = 680; // a little under the 733px printable height so a sheet never spills onto the next page
   document.querySelectorAll('#csum-box .sr-table-wrap, #rem-box .sr-table-wrap, #rank-box .sr-table-wrap, #ach-box .sr-table-wrap').forEach(wrap=>{
     const table = wrap.querySelector('table');
     if(!table) return;
@@ -1306,7 +1310,7 @@ function fitWideTablesToPage(){
       if(report) [...report.children].forEach(ch=>{ if(ch!==wrap) headH += ch.offsetHeight + 8; });
       const availH = Math.max(200, PAGE_HEIGHT_PX - headH - 40);
       const heightScale = availH / naturalHeight;
-      if(heightScale < scale && heightScale >= 0.5) scale = heightScale;
+      if(heightScale < scale) scale = Math.max(0.3, heightScale); // always keep one class on one sheet
     }
     if(scale < 1){
       table.style.transformOrigin = 'top left';
@@ -4053,7 +4057,7 @@ function printAllClassSummaries(){
   let skipped = 0;
   matches.forEach(c=>{
     const html = buildClassSummaryHTML(c.name, year, sem);
-    if(html) blocks.push(`<div style="page-break-after:always;">${html}</div>`);
+    if(html) blocks.push(`<div class="csum-page">${html}</div>`);
     else skipped++;
   });
 
