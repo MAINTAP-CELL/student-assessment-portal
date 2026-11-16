@@ -4373,10 +4373,10 @@ function buildTerminalReportHTML(s, clsName, sem, year, data){
           <div class="trm-sign">${s.houseMasterSignature ? `<img src="${s.houseMasterSignature}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${s.seniorHouseMaster || '_______________________'}<br/><span style="font-weight:400;">SENIOR HOUSE MASTER/MISTRESS</span></div>
         </td></tr>
         <tr><td class="role">Assist. Head Academic Remarks:</td><td>${terminalNarrative('academic', avg)}
-          <div class="trm-sign">${(ts.assistSignature===undefined?ASST_ACAD_SIGNATURE:ts.assistSignature) ? `<img src="${(ts.assistSignature===undefined?ASST_ACAD_SIGNATURE:ts.assistSignature)}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.assistHeadAcademic || '_______________________'}<br/><span style="font-weight:400;">ASSISTANT HEAD ACADEMIC</span></div>
+          <div class="trm-sign">${(ts.assistSignature||ASST_ACAD_SIGNATURE) ? `<img src="${(ts.assistSignature||ASST_ACAD_SIGNATURE)}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.assistHeadAcademic || '_______________________'}<br/><span style="font-weight:400;">ASSISTANT HEAD ACADEMIC</span></div>
         </td></tr>
         <tr><td class="role">Headmaster's/Mistress's Remarks:</td><td>${terminalNarrative('head', avg)}
-          <div class="trm-sign">${(ts.headSignature===undefined?HEAD_SIGNATURE:ts.headSignature) ? `<img src="${(ts.headSignature===undefined?HEAD_SIGNATURE:ts.headSignature)}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.headmaster || '_______________________'}<br/><span style="font-weight:400;">(HEADMASTER/MISTRESS)</span></div>
+          <div class="trm-sign">${(ts.headSignature||HEAD_SIGNATURE) ? `<img src="${(ts.headSignature||HEAD_SIGNATURE)}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.headmaster || '_______________________'}<br/><span style="font-weight:400;">(HEADMASTER/MISTRESS)</span></div>
         </td></tr>
       </table>
 
