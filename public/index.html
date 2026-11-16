@@ -5263,7 +5263,7 @@ function certAwardSVG(st, item, cs){
     <text x="601" y="406" text-anchor="middle" font-size="${nameSize}" font-weight="900" fill="#111" letter-spacing="3">${name}</text>
     <line x1="250" x2="952" y1="428" y2="428" stroke="${G}" stroke-width="2"/>
     <polygon points="250,423 255,428 250,433 245,428" fill="${G}"/><polygon points="952,423 957,428 952,433 947,428" fill="${G}"/>
-    <text x="601" y="468" text-anchor="middle" font-size="25" font-weight="700" fill="${G}" letter-spacing="2">FORM ${item.form} — ${certEsc(String(st.class||'').toUpperCase())}</text>
+    <text x="601" y="468" text-anchor="middle" font-size="25" font-weight="700" fill="${G}" letter-spacing="2">${certEsc(String(st.learningArea || (state.classes.find(c=>c.name===st.class)||{}).learningArea || '').toUpperCase())}</text>
     <text x="601" y="506" text-anchor="middle" font-size="20" font-style="italic" fill="#333" letter-spacing="1.5">in recognition of outstanding academic performance as the</text>
     <rect x="190" y="524" width="822" height="70" rx="6" fill="${G}"/><rect x="198" y="532" width="806" height="54" rx="3" fill="none" stroke="#f3d36b" stroke-width="1.5"/>
     <text x="601" y="${559 + Math.round(tSize*0.35)}" text-anchor="middle" font-size="${tSize}" font-weight="900" fill="#fff" letter-spacing="2">${certEsc(title)}</text>
