@@ -5220,7 +5220,7 @@ function certSVG(st, label, form, cs){
     ${label ? `<text x="540" y="488" text-anchor="middle" font-size="17" font-style="italic" font-weight="700" fill="#8a6a0c" letter-spacing="1">${certEsc(label)}</text>` : ''}
     <text x="540" y="523" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">FOR DISPLAYING ACADEMIC EXCELLENCE</text>
     <text x="540" y="551" text-anchor="middle" font-size="22" font-weight="700" fill="${G}" letter-spacing="1.5">IN THE ${certEsc(cs.sem)} SEMESTER OF THE ${certEsc(cs.year)} ACADEMIC YEAR</text>
-    ${sig(312,586,'PATRON',cs.patron)}${sig(757,578,'ASST. HEAD ADMIN.',cs.admin)}${sig(312,684,'ASST. HEAD ACADEMICS',cs.acad)}${sig(757,684,'HEADMASTER',cs.head)}
+    ${sig(312,586,'PATRON',cs.patron)}${sig(757,578,'ASST. HEAD ADMIN.',cs.admin)}${sig(312,684,'ASST. HEAD ACADEMIC',cs.acad)}${sig(757,684,'HEADMASTER',cs.head)}
     <polygon points="512,690 486,756 509,742 528,760 542,700" fill="${G}"/><polygon points="568,690 594,756 571,742 552,760 538,700" fill="${G}"/>
     ${burst}<circle cx="540" cy="640" r="48" fill="${G}" stroke="#f3d36b" stroke-width="3"/>
     <polygon points="${star.join(' ')}" fill="url(#gold)"/>
@@ -5271,7 +5271,7 @@ function certAwardSVG(st, item, cs){
     <line x1="501" x2="701" y1="772" y2="772" stroke="${G}" stroke-width="2"/><text x="601" y="794" text-anchor="middle" font-size="15" font-weight="700" fill="${G}" letter-spacing="2">DATE</text>
     <text x="601" y="758" text-anchor="middle" font-size="18" font-style="italic" font-weight="700" fill="#111" letter-spacing="1">${certEsc(cs.date||'')}</text>
     <polygon points="${star.join(' ')}" fill="url(#gd)"/>
-    ${sig(340,'HEADMASTER',cs.head)}${sig(862,'ASST. HEAD ACADEMICS',cs.acad)}
+    ${sig(340,'HEADMASTER',cs.head)}${sig(862,'ASST. HEAD ACADEMIC',cs.acad)}
   </svg>`;
 }
 let certCtx = null;
@@ -5293,7 +5293,7 @@ function openCertViewer(boxId, items, kind, backFn){
       ${kind==='award' ? '' : `<div class="field"><label>Patron</label><input id="ct-patron" value="${certEsc(cs.patron)}"/></div>
       <div class="field"><label>Asst. Head Admin.</label><input id="ct-admin" value="${certEsc(cs.admin)}"/></div>`}
       ${kind==='award' ? `<div class="field"><label>Date</label><input id="ct-date" value="${certEsc(cs.date)}" style="width:170px;"/></div>` : ''}
-      <div class="field"><label>Asst. Head Academics</label><input id="ct-acad" value="${certEsc(cs.acad)}"/></div>
+      <div class="field"><label>Asst. Head Academic</label><input id="ct-acad" value="${certEsc(cs.acad)}"/></div>
       <div class="field"><label>Headmaster</label><input id="ct-head" value="${certEsc(cs.head)}"/></div>
       <button class="btn btn-ghost" onclick="certRefresh()">Apply</button>
       <button class="btn btn-gold" onclick="printCertificates()">⬇ Download / Print (${items.length})</button>
