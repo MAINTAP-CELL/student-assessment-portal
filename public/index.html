@@ -853,7 +853,7 @@ async function api(action, body){
 function sessionEnded(){
   if(!state.currentUser) return;
   doLogout(true);
-  document.getElementById('login-error').textContent = 'Your session has ended. Please sign in again.';
+  document.getElementById('login-error').textContent = '';
 }
 function recordLogin(){ /* sign-ins are recorded by the server */ }
 
@@ -1016,7 +1016,7 @@ let lastActivity = Date.now();
 setInterval(async ()=>{
   if(state.currentUser && Date.now()-lastActivity > IDLE_MINUTES*60000){
     await doLogout();
-    document.getElementById('login-error').textContent = `You were signed out after ${IDLE_MINUTES} minutes of inactivity.`;
+    document.getElementById('login-error').textContent = ''; // signed out quietly: no message on the sign-in page
   }
 }, 30000);
 try{ if(window.top !== window.self){ document.documentElement.style.display='none'; window.top.location = window.self.location; } }catch(e){ document.documentElement.style.display='none'; }
