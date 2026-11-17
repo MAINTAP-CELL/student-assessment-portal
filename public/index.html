@@ -1284,13 +1284,17 @@ function confirmPrint(orientation){
   setTimeout(()=> window.print(), 150);
 }
 /* The browser uses the page title as the default PDF file name: student name + class for a transcript / terminal report */
+function achieversAcademicYear(yr){
+  const m = liveClasses().find(c=>(!yr || yr==='ALL' || c.year===yr) && (state.classTermSettings[c.name]||{}).academicYear);
+  return m ? String(state.classTermSettings[m.name].academicYear) : '2025-2026';
+}
 function achieversFileTitle(){
   try{
     const box = document.getElementById('ach-box');
-    if(!box || !box.innerHTML.trim()) return null;
+    if(!box || !box.innerHTML.trim() || box.querySelector('#cert-pages')) return null;
     const yr = document.getElementById('ach-year').value;
     const sem = document.getElementById('ach-sem').value==='s2' ? '2nd Semester' : '1st Semester';
-    return `Achievers - ${yr==='ALL' ? 'All Years' : yr} - ${sem}`;
+    return `Achievers - ${achieversAcademicYear(yr).replace(/\//g,'-')} - ${yr==='ALL' ? 'All Years' : yr} - ${sem}`;
   }catch(e){ return null; }
 }
 function remedialFileTitle(){
@@ -4927,7 +4931,7 @@ function renderAchievers(){
       </div>
       <div class="sr-report-title">Achievers Summary Sheet</div>
       <div class="sr-meta">
-        <div><b>ACADEMIC YEAR</b> &nbsp;2025-2026</div>
+        <div><b>ACADEMIC YEAR</b> &nbsp;${achieversAcademicYear(year)}</div>
         <div><b>YEAR</b> &nbsp;${year==='ALL'?'All Years':year}</div>
         <div><b>SEM</b> &nbsp;${sem==='s1'?'ONE(1)':'TWO(2)'}</div>
         <div><b>TOTAL ACHIEVERS</b> &nbsp;${achievers.length}</div>
@@ -5448,12 +5452,22 @@ function certToPNG(it){
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace('<svg ', `<svg width="${W}" height="${H}" `));
   });
 }
+/* File name for a certificate: Achievers carry the academic year and semester */
+function certFileName(st){
+  const cs = certSettings(), ay = String(cs.year||'').replace(/\//g,'-').trim();
+  if(certCtx && certCtx.kind==='achiever'){
+    const sem = cs.sem==='SECOND' ? '2nd Semester' : '1st Semester';
+    const base = st ? `${fullName(st)} - ${st.class} - Achievers Certificate` : 'Achievers Certificates';
+    return `${base}${ay ? ' - '+ay : ''} - ${sem}`.replace(/[\\/:*?"<>|]/g,'');
+  }
+  return (st ? `${fullName(st)} - ${st.class} - Certificate` : 'Academic Award Certificates').replace(/[\\/:*?"<>|]/g,'');
+}
 function downloadCertImage(i){
   const it = certCtx && certCtx.items[i]; if(!it) return;
   certToPNG(it).then(cv=> cv.toBlob(b=>{
     if(!b){ toast('Could not create the image.', true); return; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-    a.download = `${fullName(it.st)} - ${it.st.class} - Certificate.png`.replace(/[\\/:*?"<>|]/g,'');
+    a.download = certFileName(it.st) + '.png';
     document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }, 'image/png')).catch(()=> toast('Could not create the image.', true));
 }
@@ -5465,7 +5479,7 @@ function printCertificates(only){
   if(!styleEl){ styleEl = document.createElement('style'); styleEl.id='dynamic-page-size'; document.head.appendChild(styleEl); }
   styleEl.textContent = '@page{ size: A4 landscape; margin: 0; }';
   const old = document.title;
-  document.title = one ? `${fullName(one.st)} - ${one.st.class} - Certificate` : certCtx.items.length===1 ? `${fullName(certCtx.items[0].st)} - ${certCtx.items[0].st.class} - Certificate` : (certCtx.kind==='award' ? 'Academic Award Certificates' : 'Achievers Certificates');
+  document.title = certFileName(one ? one.st : certCtx.items.length===1 ? certCtx.items[0].st : null);
   document.body.classList.add('print-certs'); document.body.classList.toggle('cert-solo', !!one);
   let restored = false;
   const restore = ()=>{ if(restored) return; restored = true; document.body.classList.remove('print-certs','cert-solo'); document.title = old; certRefresh(); };
