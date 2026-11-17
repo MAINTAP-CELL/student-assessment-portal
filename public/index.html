@@ -1284,6 +1284,15 @@ function confirmPrint(orientation){
   setTimeout(()=> window.print(), 150);
 }
 /* The browser uses the page title as the default PDF file name: student name + class for a transcript / terminal report */
+function achieversFileTitle(){
+  try{
+    const box = document.getElementById('ach-box');
+    if(!box || !box.innerHTML.trim()) return null;
+    const yr = document.getElementById('ach-year').value;
+    const sem = document.getElementById('ach-sem').value==='s2' ? '2nd Semester' : '1st Semester';
+    return `Achievers - ${yr==='ALL' ? 'All Years' : yr} - ${sem}`;
+  }catch(e){ return null; }
+}
 function remedialFileTitle(){
   try{
     const box = document.getElementById('rem-box');
@@ -1310,7 +1319,8 @@ function printFileTitle(){
     };
     return pick('tr-box','transcript','tr-select','tr-class','Transcripts')
         || pick('trm-box','terminal-report','trm-student','trm-class','Terminal Reports')
-        || remedialFileTitle();
+        || remedialFileTitle()
+        || achieversFileTitle();
   }catch(e){ return null; }
 }
 function summaryFileTitle(){
