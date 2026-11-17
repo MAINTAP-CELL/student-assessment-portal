@@ -1284,6 +1284,16 @@ function confirmPrint(orientation){
   setTimeout(()=> window.print(), 150);
 }
 /* The browser uses the page title as the default PDF file name: student name + class for a transcript / terminal report */
+function remedialFileTitle(){
+  try{
+    const box = document.getElementById('rem-box');
+    if(!box || !box.innerHTML.trim()) return null;
+    const yr = (document.getElementById('rem-year')||{}).value, sem = (document.getElementById('rem-sem')||{}).value==='s2' ? '2nd Semester' : '1st Semester';
+    const withYr = liveClasses().find(c=>(!yr || yr==='ALL' || c.year===yr) && (state.classTermSettings[c.name]||{}).academicYear);
+    const ay = withYr ? state.classTermSettings[withYr.name].academicYear : '2025-2026';
+    return `Remedial_Intervention - ${String(ay).replace(/\//g,'-')} - ${sem}`;
+  }catch(e){ return null; }
+}
 function printFileTitle(){
   try{
     const pick = (boxId, cls, selId, classId, suffix)=>{
@@ -1299,7 +1309,8 @@ function printFileTitle(){
       return c && c.value ? `${c.value} - ${suffix}` : null;
     };
     return pick('tr-box','transcript','tr-select','tr-class','Transcripts')
-        || pick('trm-box','terminal-report','trm-student','trm-class','Terminal Reports');
+        || pick('trm-box','terminal-report','trm-student','trm-class','Terminal Reports')
+        || remedialFileTitle();
   }catch(e){ return null; }
 }
 function summaryFileTitle(){
