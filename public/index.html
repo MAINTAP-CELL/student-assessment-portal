@@ -4597,20 +4597,21 @@ RENDER.assessRecords = function(){
       <h1>Student Records</h1>
       <p>View the captured assessment scores of every student for a year, semester, assessment mode and subject.</p>
     </div>
-    <div class="toolbar">
-      <div class="field"><label>Year of Exam</label>
+    <div class="toolbar" style="flex-wrap:nowrap;">
+      <div class="field" style="flex:1;"><label>Year of Exam</label>
         <select id="ar-year"><option value="">**YEAR OF EXAM**</option><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
-      <div class="field"><label>Semester</label>
+      <div class="field" style="flex:1;"><label>Semester</label>
         <select id="ar-sem"><option value="">**SELECT SEM**</option><option value="s1">1st Sem</option><option value="s2">2nd Sem</option></select></div>
-      <div class="field"><label>Mode of Assessment</label>
+      <div class="field" style="flex:1;"><label>Mode of Assessment</label>
         <select id="ar-mode"><option value="">**SELECT MODE OF ASSESSMENT**</option><option value="ALL">Overall Score</option>
           ${ASSESSMENT_MODES.map(m=>`<option value="${m.key}">${m.label}</option>`).join('')}</select></div>
-      <div class="field"><label>Subject</label>
+      <div class="field" style="flex:1;"><label>Subject</label>
         <select id="ar-subject"><option value="">Select a subject</option>${subjects.map(s=>`<option>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="toolbar"><div class="field"><input id="ar-search" placeholder="AUTO SEARCH.." oninput="arApplySearch()" autocomplete="off"></div>
       <button class="btn btn-gold" onclick="renderAssessRecords()">Submit</button>
       <button class="btn btn-ghost" onclick="downloadAssessRecords()">Download Excel ⬇</button>
     </div>
-    <div class="toolbar"><div class="field"><input id="ar-search" placeholder="AUTO SEARCH.." oninput="arApplySearch()" autocomplete="off"></div></div>
     <div class="card" style="overflow-x:auto;"><div id="ar-box"><div class="empty"><div class="glyph">▤</div><b>Choose filters</b><p>Select the year, semester, mode of assessment and subject, then click Submit.</p></div></div></div>
   `;
 };
