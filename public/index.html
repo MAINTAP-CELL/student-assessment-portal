@@ -4607,10 +4607,10 @@ RENDER.assessRecords = function(){
           ${ASSESSMENT_MODES.map(m=>`<option value="${m.key}">${m.label}</option>`).join('')}</select></div>
       <div class="field" style="flex:1;"><label>Subject</label>
         <select id="ar-subject"><option value="">Select a subject</option>${subjects.map(s=>`<option>${s}</option>`).join('')}</select></div>
+      <button class="btn btn-gold" onclick="renderAssessRecords()">Submit</button>
     </div>
     <div class="toolbar"><div class="field"><input id="ar-search" placeholder="AUTO SEARCH.." oninput="arApplySearch()" autocomplete="off"></div>
-      <button class="btn btn-gold" onclick="renderAssessRecords()">Submit</button>
-      <button class="btn btn-ghost" onclick="downloadAssessRecords()">Download Excel ⬇</button>
+      <button class="btn btn-ghost" style="margin-left:auto;" onclick="downloadAssessRecords()">Download Excel ⬇</button>
     </div>
     <div class="card" style="overflow-x:auto;"><div id="ar-box"><div class="empty"><div class="glyph">▤</div><b>Choose filters</b><p>Select the year, semester, mode of assessment and subject, then click Submit.</p></div></div></div>
   `;
