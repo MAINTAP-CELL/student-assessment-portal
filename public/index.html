@@ -1302,6 +1302,23 @@ function printFileTitle(){
         || pick('trm-box','terminal-report','trm-student','trm-class','Terminal Reports');
   }catch(e){ return null; }
 }
+function summaryFileTitle(){
+  try{
+    const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+    const clsName = g('csum-class'), sem = g('csum-sem')==='s2' ? '2nd Semester' : '1st Semester';
+    const pages = document.querySelectorAll('#csum-box .csum-page').length;
+    const nameOf = pages > 1 ? `${g('csum-area')} ${g('csum-year')}`.trim() : clsName;
+    if(!nameOf) return null;
+    const cls = state.classes.find(c=>c.name===clsName);
+    const ts = state.classTermSettings[clsName] || {};
+    let yr = ts.academicYear;
+    if(!yr){ // all-classes print: use the first matching class that has an academic year set
+      const m = liveClasses().find(c=>c.year===g('csum-year') && c.learningArea===g('csum-area') && (state.classTermSettings[c.name]||{}).academicYear);
+      yr = m ? state.classTermSettings[m.name].academicYear : '2025-2026';
+    }
+    return `${nameOf} - ${String(yr).replace(/\//g,'-')} - ${sem}`;
+  }catch(e){ return null; }
+}
 /* Class Summary Report is always landscape (too wide for portrait) and uses a fit-to-width table layout */
 function printLandscapeOnly(){
   let styleEl = document.getElementById('dynamic-page-size');
@@ -1313,6 +1330,10 @@ function printLandscapeOnly(){
   styleEl.textContent = `@page{ size: A4 landscape; margin: 8mm; }`;
   document.body.classList.remove('print-portrait');
   document.body.classList.add('print-landscape', 'print-summary-fit');
+  // The browser's default PDF file name is the page title: class name, academic year and semester
+  const oldTitle = document.title;
+  const sumTitle = summaryFileTitle();
+  if(sumTitle){ document.title = sumTitle; window.addEventListener('afterprint', ()=>{ document.title = oldTitle; }, { once:true }); }
   setTimeout(()=>{
     fitWideTablesToPage();
     window.print();
