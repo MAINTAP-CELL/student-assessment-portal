@@ -4743,7 +4743,7 @@ function computeAchievers(year, sem){
       row.subjData.forEach(d=>{
         if(d.grade === 'A1'){
           if(CORE_SUBJECTS_FOR_ACHIEVERS.includes(d.subject)) coreA.push(d.subject);
-          else electiveA.push(d.subject);
+          else if(!SUBJECT_POOL.CORE.includes(d.subject)) electiveA.push(d.subject); // compulsory subjects such as Physical Education & Health are not electives
         }
       });
       if(coreA.length >= 2 && electiveA.length >= 3){
@@ -4762,7 +4762,7 @@ RENDER.achievers = function(){
   return `
     <div class="page-head">
       <h1>🏆 Achievers</h1>
-      <p>Students with A1 in at least 2 core subjects (${CORE_SUBJECTS_FOR_ACHIEVERS.join(', ')}) and at least 3 elective subjects, generated from Class Summary data across every matching class.</p>
+      <p>Students with A1 in at least 2 core subjects (${CORE_SUBJECTS_FOR_ACHIEVERS.join(', ')}) and at least 3 elective subjects (compulsory subjects such as Physical Education &amp; Health do not count as electives), generated from Class Summary data across every matching class.</p>
     </div>
     <div class="toolbar">
       <div class="field"><label>Year</label>
