@@ -106,6 +106,30 @@ async function loadAllShards(db) {
 }
 async function allStudents(db) { return (await loadAllShards(db)).flatMap(s => s.list); }
 
+/* Parent sign-in needs one student by reference number. Reading every class just to find one student is slow and can
+   exceed the free-plan limits, so a small index (reference -> class) is kept and the full scan is only a fallback. */
+const REFIDX = 'refidx';
+async function findByRef(db, ref) {
+  const want = lc(ref);
+  const idx = await getJ(db, REFIDX, {});
+  if (idx[want]) {
+    const st = (await getJ(db, idx[want], [])).find(x => lc(x.assRefId) === want);
+    if (st) return st;
+  }
+  try {
+    const shards = await loadAllShards(db);
+    const index = {}; let found = null;
+    for (const sh of shards) for (const x of sh.list) { if (x.assRefId) index[lc(x.assRefId)] = sh.key; if (lc(x.assRefId) === want) found = x; }
+    await update(db, REFIDX, {}, () => index).catch(() => {});
+    return found;
+  } catch (e) { return null; } // too heavy to scan right now: treat as not found rather than failing the sign-in page
+}
+async function indexStudents(db, studs, key) {
+  const add = studs.filter(x => x && x.assRefId);
+  if (!add.length) return;
+  await update(db, REFIDX, {}, idx => { let ch = false; for (const x of add) { if (idx[lc(x.assRefId)] !== key) { idx[lc(x.assRefId)] = key; ch = true; } } return ch ? idx : undefined; }).catch(() => {});
+}
+
 /* ---------------------------------------------------------------- bootstrap */
 const inited = new WeakMap();
 export function ensureInit(ctx) {
@@ -282,10 +306,17 @@ async function login(ctx, body, ip) {
   const staff = users.find(u => u.status === 'active' && ((u.username && lc(u.username) === lc(username)) || (u.email && lc(u.email) === lc(username))));
   let principal = null, reason = 'Failed — unknown username';
   if (staff) {
-    if (await verifyPassword(password, staff.passwordHash || dummyHash()) && staff.passwordHash) principal = { role: staff.designation === 'Admin' ? 'admin' : 'teacher', user: staff };
+    const heavy = Number(String(staff.passwordHash || '').split('$')[1]) > SCRYPT_N;
+    const adminEnv = ctx.env && ctx.env.ADMIN_PASSWORD ? String(ctx.env.ADMIN_PASSWORD) : '';
+    if (heavy && staff.designation === 'Admin' && adminEnv && password.length === adminEnv.length && crypto.timingSafeEqual(Buffer.from(password), Buffer.from(adminEnv))) {
+      // old, expensive hash can't be checked within the free-plan time limit: confirm against the server secret and upgrade it
+      staff.passwordHash = await hashPassword(password);
+      await update(ctx.db, 'users', [], list => { const u = list.find(x => x.id === staff.id); if (u) { u.passwordHash = staff.passwordHash; return list; } return undefined; });
+      principal = { role: 'admin', user: staff };
+    } else if (await verifyPassword(password, staff.passwordHash || dummyHash()) && staff.passwordHash) principal = { role: staff.designation === 'Admin' ? 'admin' : 'teacher', user: staff };
     else reason = 'Failed — wrong password';
   } else {
-    const st = (await allStudents(ctx.db)).find(s => lc(s.assRefId) === lc(username));
+    const st = await findByRef(ctx.db, username);
     if (st) {
       if (!(st.parentAccess && st.parentAccess.enabled)) reason = 'Failed — parent access not enabled';
       else if (!dobMatches(password, st.dob)) reason = 'Failed — wrong date of birth';
@@ -401,6 +432,7 @@ async function saveStudents(ctx, principal, changes, rejected) {
       }
       return changed ? list : undefined;
     });
+    await indexStudents(db, studs, key);
   }
   // a hint that turned out wrong: look these students up across all classes
   if (unfound.length) await saveStudents(ctx, principal, { upsert: unfound.map(op => { const o = { ...op }; delete o.cls; return o; }) }, rejected);
