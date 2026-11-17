@@ -1300,6 +1300,7 @@ function remedialFileTitle(){
     const yr = (document.getElementById('rem-year')||{}).value, sem = (document.getElementById('rem-sem')||{}).value==='s2' ? '2nd Semester' : '1st Semester';
     const withYr = liveClasses().find(c=>(!yr || yr==='ALL' || c.year===yr) && (state.classTermSettings[c.name]||{}).academicYear);
     const ay = withYr ? state.classTermSettings[withYr.name].academicYear : '2025-2026';
+    if(box.querySelector('.board-report')) return `Academic_Board_Remedial_Report - ${String(ay).replace(/\//g,'-')} - ${sem}`;
     return `Remedial_Intervention - ${String(ay).replace(/\//g,'-')} - ${sem}`;
   }catch(e){ return null; }
 }
@@ -5532,6 +5533,7 @@ RENDER.remedial = function(){
       </div>
       <div class="field"><label>Semester</label><select id="rem-sem" onchange="renderRemedial()"><option value="s1">ONE (1)</option><option value="s2">TWO (2)</option></select></div>
       <button class="btn btn-ghost" onclick="smartPrint()">🖨 Print All / Save as PDF</button>
+      <button class="btn btn-gold" onclick="generateBoardReport()">📋 Academic Board Report (per student)</button>
     </div>
     <div id="rem-box"></div>
   `;
@@ -5581,6 +5583,82 @@ function renderRemedial(){
       </div>
     </div>
   `).join('');
+}
+
+/* ---------------- Remedial: per-student Academic Board report with recommendations ---------------- */
+function boardRecommendations(info){
+  const rec = [];
+  const crit = info.weak.filter(w=>w.grade==='F9'||w.grade==='E8');
+  const critCore = crit.filter(w=>w.core), d7 = info.weak.filter(w=>w.grade==='D7');
+  if(info.notWritten.length) rec.push(`Confirm why ${info.notWritten.map(w=>w.subject).join(', ')} ${info.notWritten.length>1?'have':'has'} no score (absence, illness or missing capture) and arrange a make-up assessment where the student was genuinely absent.`);
+  if(critCore.length) rec.push(`Place the student on an intensive remedial programme in the core subject(s) ${critCore.map(w=>w.subject).join(', ')}: weekly extra lessons and a written improvement plan agreed with the subject teacher.`);
+  if(crit.length > critCore.length) rec.push(`Provide targeted extra classes and past-question practice in ${crit.filter(w=>!w.core).map(w=>w.subject).join(', ')}.`);
+  if(d7.length) rec.push(`Monitor ${d7.map(w=>w.subject).join(', ')} (D7) closely through class exercises; the student is close to a pass and can improve with regular practice.`);
+  if(info.weak.length >= 4 || crit.length >= 3) rec.push('Invite the parent/guardian to a meeting with the house and form masters, and refer the student for academic counselling and supervised evening preparation.');
+  else if(info.weak.length >= 2) rec.push('Inform the parent/guardian of the results and agree on a home study routine.');
+  if(info.strong.length) rec.push(`Build confidence from strengths (${info.strong.slice(0,3).map(w=>w.subject+' '+w.grade).join(', ')}) and consider peer-tutoring pairing with a stronger student.`);
+  rec.push('Review progress at the next assessment and report back to the Academic Board.');
+  return rec;
+}
+function generateBoardReport(){
+  const year = document.getElementById('rem-year').value;
+  const sem = document.getElementById('rem-sem').value;
+  const groups = computeRemedialList(year, sem);
+  const box = document.getElementById('rem-box');
+  if(!groups.length){ toast('No remedial or intervention cases found for this filter.', true); return; }
+  const semLabel = sem==='s1' ? 'ONE (1)' : 'TWO (2)';
+  const head = (title)=>`
+      <div class="sr-head">
+        <div class="sr-badge">${state.school.logo ? `<img src="${state.school.logo}" style="width:100%;height:100%;object-fit:contain;"/>` : BADGE_SVG}</div>
+        <div class="sr-titleblock">
+          <div class="sr-ges">GHANA EDUCATION SERVICE</div>
+          <div class="sr-school-name">${state.school.name}</div>
+          <div>TEL: ${state.school.phone} · E-MAIL: ${state.school.email}</div>
+        </div>
+      </div>
+      <div class="sr-report-title">${title}</div>`;
+  // Build per-student info
+  const subjCount = {}; let totalStudents = 0, criticalStudents = 0;
+  const classBlocks = groups.map(g=>{
+    const byStudent = new Map();
+    g.rows.forEach(r=>{ if(!byStudent.has(r.student.id)) byStudent.set(r.student.id, { student:r.student, weak:[], notWritten:[] }); const o = byStudent.get(r.student.id);
+      (r.grade==='NOT WRITTEN' ? o.notWritten : o.weak).push(r); subjCount[r.subject] = (subjCount[r.subject]||0)+1; });
+    const infos = [...byStudent.values()].map(o=>{
+      const all = g.cls.subjects.map(subj=>{ const sc = getScore(o.student, subj, g.cls.year, sem); return { subject:subj, score:sc, grade: sc!=null ? gradeFor(sc).grade : null, core: CORE_SUBJECTS_FOR_ACHIEVERS.includes(subj) }; });
+      const written = all.filter(a=>a.score!=null);
+      o.avg = written.length ? written.reduce((s,a)=>s+a.score,0)/written.length : null;
+      o.strong = written.filter(a=>['A1','B2','B3'].includes(a.grade)).sort((a,b)=>b.score-a.score);
+      o.all = all;
+      o.critical = o.weak.some(w=>w.grade==='F9'||w.grade==='E8') || o.weak.length>=4;
+      return o;
+    }).sort((a,b)=> (b.critical-a.critical) || (b.weak.length+b.notWritten.length)-(a.weak.length+a.notWritten.length) || fullName(a.student).localeCompare(fullName(b.student)));
+    totalStudents += infos.length; criticalStudents += infos.filter(i=>i.critical).length;
+    return { g, infos };
+  });
+  const topSubj = Object.entries(subjCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const summary = `<div class="summary-report board-report" style="page-break-after:always;">${head('Academic Board Report — Remedial / Intervention')}
+      <div class="sr-meta"><div><b>ACADEMIC YEAR</b> &nbsp;2025-2026</div><div><b>SEM</b> &nbsp;${semLabel}</div><div><b>SCOPE</b> &nbsp;${year==='ALL'?'All years':year}</div></div>
+      <div class="sr-subtitle">Summary for discussion</div>
+      <p style="font-size:13px;line-height:1.6;margin:10px 0;"><b>${totalStudents}</b> student(s) across <b>${groups.length}</b> class(es) need remedial support or intervention; <b>${criticalStudents}</b> are in the high-priority group (E8/F9 in any subject, or four or more weak or unwritten subjects).</p>
+      <div class="sr-table-wrap"><table><thead><tr><th>CLASS</th><th>STUDENTS NEEDING SUPPORT</th><th>HIGH PRIORITY</th></tr></thead><tbody>
+        ${classBlocks.map(b=>`<tr><td>${b.g.cls.name}</td><td style="text-align:center;">${b.infos.length}</td><td style="text-align:center;">${b.infos.filter(i=>i.critical).length}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="sr-subtitle" style="margin-top:14px;">Subjects with the most weak or unwritten results (for subject teachers and heads of department)</div>
+      <div class="sr-table-wrap"><table><thead><tr><th>SUBJECT</th><th>CASES</th></tr></thead><tbody>${topSubj.map(([s,n])=>`<tr><td>${s}</td><td style="text-align:center;">${n}</td></tr>`).join('')}</tbody></table></div>
+      <p style="font-size:12px;color:#555;margin-top:12px;">Weak = D7, E8 or F9. Recommendations on the following pages are generated from each student's captured scores and should be reviewed by the Board before they are adopted.</p>
+    </div>`;
+  const pages = classBlocks.map((b,bi)=>`<div class="summary-report board-report" style="page-break-after:${bi<classBlocks.length-1?'always':'auto'};margin-top:24px;">${head('Student Performance Review — '+b.g.cls.name)}
+      <div class="sr-meta"><div><b>CLASS:</b> &nbsp;${b.g.cls.name}</div><div><b>DEPARTMENT</b> &nbsp;${b.g.cls.learningArea}</div><div><b>SEM</b> &nbsp;${semLabel}</div></div>
+      ${b.infos.map((o,i)=>`<div style="border:1px solid #999;border-radius:4px;padding:10px 12px;margin:10px 0;page-break-inside:avoid;">
+        <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;"><b>${i+1}. ${fullName(o.student)}</b><span>${o.student.assRefId||o.student.id} · ${o.avg!=null?'Average '+o.avg.toFixed(1)+'%':'No scores'} ${o.critical?'· <b style="color:#b3402a;">HIGH PRIORITY</b>':''}</span></div>
+        <div style="font-size:12px;margin:6px 0;"><b>Concerns:</b> ${[...o.weak.map(w=>`${w.subject} (${w.grade}${w.core?', core':''})`), ...o.notWritten.map(w=>`${w.subject} (not written)`)].join('; ')}</div>
+        <div style="font-size:12px;margin:6px 0;"><b>Strengths:</b> ${o.strong.length ? o.strong.slice(0,4).map(w=>`${w.subject} (${w.grade})`).join('; ') : 'None recorded this semester'}</div>
+        <div style="font-size:12px;"><b>Recommendations:</b><ul style="margin:4px 0 0 18px;padding:0;">${boardRecommendations(o).map(r=>`<li>${r}</li>`).join('')}</ul></div>
+      </div>`).join('')}
+    </div>`).join('');
+  box.innerHTML = summary + pages;
+  toast(`Board report ready for ${totalStudents} student(s). Choose an orientation, then save as PDF.`);
+  setTimeout(()=> smartPrint(), 300);
 }
 
 /* ---------------- Settings: School Info ---------------- */
