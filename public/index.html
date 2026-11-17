@@ -568,6 +568,7 @@
       <div class="nav-item" data-view="register" data-admin-only="1"><span class="dot"></span>Register Student</div>
       <div class="nav-item" data-view="captureSubject" data-staff-only="1"><span class="dot"></span>Capture Assessment (Per Subject)</div>
       <div class="nav-item" data-view="scoreUpdate" data-staff-only="1"><span class="dot"></span>Score Update</div>
+      <div class="nav-item" data-view="assessRecords" data-admin-only="1"><span class="dot"></span>Assessment Records</div>
       <div class="nav-item" data-view="manageStudents" data-admin-only="1"><span class="dot"></span>Manage Students</div>
       <div class="nav-item" data-view="parentAccess" data-admin-only="1"><span class="dot"></span>Parent Portal Access</div>
       <div class="nav-item" data-view="transcript" data-teacher-gate="1"><span class="dot"></span>Transcript / Statement</div>
@@ -4586,6 +4587,58 @@ function saveTermSettings(){
   toast(`Term settings saved for ${clsName} (semester ${semSel==='s1'?'ONE':'TWO'}).`);
 }
 
+/* ============================================================
+   ASSESSMENT RECORDS (admin) — captured scores per year, semester, assessment mode and subject
+   ============================================================ */
+RENDER.assessRecords = function(){
+  const subjects = [...new Set(liveClasses().flatMap(c=>c.subjects||[]))].sort();
+  return `
+    <div class="page-head">
+      <h1>Student Records</h1>
+      <p>View the captured assessment scores of every student for a year, semester, assessment mode and subject.</p>
+    </div>
+    <div class="toolbar">
+      <div class="field"><label>Year of Exam</label>
+        <select id="ar-year"><option value="">**YEAR OF EXAM**</option><option>Year 1</option><option>Year 2</option><option>Year 3</option></select></div>
+      <div class="field"><label>Semester</label>
+        <select id="ar-sem"><option value="">**SELECT SEM**</option><option value="s1">1st Sem</option><option value="s2">2nd Sem</option></select></div>
+      <div class="field"><label>Mode of Assessment</label>
+        <select id="ar-mode"><option value="">**SELECT MODE OF ASSESSMENT**</option><option value="ALL">Overall Score</option>
+          ${ASSESSMENT_MODES.map(m=>`<option value="${m.key}">${m.label}</option>`).join('')}</select></div>
+      <div class="field"><label>Subject</label>
+        <select id="ar-subject"><option value="">Select a subject</option>${subjects.map(s=>`<option>${s}</option>`).join('')}</select></div>
+      <button class="btn btn-gold" onclick="renderAssessRecords()">Submit</button>
+    </div>
+    <div class="toolbar"><div class="field"><input id="ar-search" placeholder="AUTO SEARCH.." oninput="arApplySearch()" autocomplete="off"></div></div>
+    <div class="card" style="overflow-x:auto;"><div id="ar-box"><div class="empty"><div class="glyph">▤</div><b>Choose filters</b><p>Select the year, semester, mode of assessment and subject, then click Submit.</p></div></div></div>
+  `;
+};
+function renderAssessRecords(){
+  const year = document.getElementById('ar-year').value, sem = document.getElementById('ar-sem').value;
+  const mode = document.getElementById('ar-mode').value, subj = document.getElementById('ar-subject').value;
+  const box = document.getElementById('ar-box');
+  if(!year || !sem || !mode || !subj){ toast('Select the year, semester, mode of assessment and subject.', true); return; }
+  const classNames = new Set(liveClasses().filter(c=>c.year===year && (c.subjects||[]).includes(subj)).map(c=>c.name));
+  const studs = state.students.filter(st=>st.status==='active' && classNames.has(st.class))
+    .sort((a,b)=> a.class.localeCompare(b.class) || fullName(a).localeCompare(fullName(b)));
+  if(!studs.length){ box.innerHTML = `<div class="empty"><div class="glyph">▤</div><b>No matching records</b><p>No students offer ${subj} in ${year}.</p></div>`; return; }
+  const modeName = mode==='ALL' ? 'Overall Score' : ASSESSMENT_MODES.find(m=>m.key===mode).label;
+  let n = 0, got = 0;
+  const rows = studs.map(st=>{
+    const v = mode==='ALL' ? getScore(st, subj, year, sem) : getComponentScore(st, subj, year, sem, mode);
+    const has = v!=null && v!=='' && !isNaN(v); n++; if(has) got++;
+    return `<tr data-q="${(fullName(st)+' '+st.id+' '+st.class).toLowerCase().replace(/"/g,'')}"><td class="mono">${n}</td><td class="mono">${st.id}</td><td>${fullName(st)}</td><td>${st.class}</td><td class="mono">${has ? v : '<span style="color:#c2410c;">Not captured</span>'}</td></tr>`;
+  }).join('');
+  box.innerHTML = `<div style="padding:8px 4px 12px; font-size:13px; color:var(--slate);"><b>${subj}</b> · ${modeName} · ${year} · ${sem==='s1'?'1st':'2nd'} Sem — ${got} of ${studs.length} captured</div>
+    <table><thead><tr><th>#</th><th>Ass't Ref ID</th><th>Student Name</th><th>Class</th><th>${modeName}</th></tr></thead><tbody>${rows}</tbody></table>`;
+  arApplySearch();
+}
+function arApplySearch(){
+  const q = (document.getElementById('ar-search').value||'').toLowerCase().trim();
+  document.querySelectorAll('#ar-box tbody tr').forEach(tr=>{ tr.style.display = (!q || tr.dataset.q.includes(q)) ? '' : 'none'; });
+}
+
+
 /* ---------------- User Manual (auto-generated from the live sidebar) ---------------- */
 /* Add a short description here whenever a new nav-item/view is introduced; anything
    missing still shows up automatically with a sensible fallback line, so the manual
@@ -4600,6 +4653,7 @@ const MANUAL_DESCRIPTIONS = {
   register: 'Add a new student one at a time, or bulk-register a whole class: download the Excel template, fill it in offline (the first column is the Ass\'tRefID the school provides for each student, which becomes that student\'s ID in the system) and upload it back — rows with a missing, invalid or duplicate ID are rejected with reasons. Also lets you look up and re-open an existing student\'s registration for editing.',
   captureSubject: 'Enter scores for every candidate offering one subject in one class and semester. Download the score template, or upload a filled template or a file from another system: each student is verified by Ass\'t Ref ID, name, learning area, year of entry and subject, and the scores and overall scores are saved against their own class. Choose the Assessment Mode when uploading an external file.',
   captureStudent: 'Record one student\'s scores across all of their subjects at once, instead of moving subject by subject.',
+  assessRecords: 'Admin only. Shows the captured scores of every student offering a subject. Choose the Year of Exam, the Semester, the Mode of Assessment (or Overall Score) and the Subject, then click Submit. Use the Auto Search box to find a student by name, ID or class; students whose score is missing show Not captured.',
   scoreUpdate: 'Correct a previously captured score for a specific class, subject and semester without repeating the whole capture flow.',
   manageStudents: 'Browse, filter (by year, learning area and class), edit, drop subjects for, transfer, or progress students to their next class, repeat or delete a student, and download an Excel sheet of all student data for a selected class. Also where bio-data, house, boarding status, gender and photo are edited after registration.',
   parentAccess: 'Switch a parent/guardian\'s portal sign-in on or off per student, and see at a glance whether scores exist yet for the selected semester before enabling access. Also has Download Parent Contacts and Bulk Message, which prepares each parent\'s login details (website, username, password) as WhatsApp/SMS links or an Excel sheet for a bulk-SMS service.',
