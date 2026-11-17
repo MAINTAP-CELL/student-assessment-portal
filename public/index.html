@@ -4608,6 +4608,7 @@ RENDER.assessRecords = function(){
       <div class="field"><label>Subject</label>
         <select id="ar-subject"><option value="">Select a subject</option>${subjects.map(s=>`<option>${s}</option>`).join('')}</select></div>
       <button class="btn btn-gold" onclick="renderAssessRecords()">Submit</button>
+      <button class="btn btn-ghost" onclick="downloadAssessRecords()">Download Excel ⬇</button>
     </div>
     <div class="toolbar"><div class="field"><input id="ar-search" placeholder="AUTO SEARCH.." oninput="arApplySearch()" autocomplete="off"></div></div>
     <div class="card" style="overflow-x:auto;"><div id="ar-box"><div class="empty"><div class="glyph">▤</div><b>Choose filters</b><p>Select the year, semester, mode of assessment and subject, then click Submit.</p></div></div></div>
@@ -4632,6 +4633,32 @@ function renderAssessRecords(){
   box.innerHTML = `<div style="padding:8px 4px 12px; font-size:13px; color:var(--slate);"><b>${subj}</b> · ${modeName} · ${year} · ${sem==='s1'?'1st':'2nd'} Sem — ${got} of ${studs.length} captured</div>
     <table><thead><tr><th>#</th><th>Ass't Ref ID</th><th>Student Name</th><th>Class</th><th>${modeName}</th></tr></thead><tbody>${rows}</tbody></table>`;
   arApplySearch();
+}
+function downloadAssessRecords(){
+  if(typeof XLSX === 'undefined'){ toast('Spreadsheet engine failed to load — check your connection.', true); return; }
+  const year = document.getElementById('ar-year').value, sem = document.getElementById('ar-sem').value;
+  const mode = document.getElementById('ar-mode').value, subj = document.getElementById('ar-subject').value;
+  if(!year || !sem || !mode || !subj){ toast('Select the year, semester, mode of assessment and subject.', true); return; }
+  const classNames = new Set(liveClasses().filter(c=>c.year===year && (c.subjects||[]).includes(subj)).map(c=>c.name));
+  const studs = state.students.filter(st=>st.status==='active' && classNames.has(st.class))
+    .sort((a,b)=> a.class.localeCompare(b.class) || fullName(a).localeCompare(fullName(b)));
+  const rows = [['School Code','Name','CassRefID','LEARNING_AREA','YearOfEntry','SubCode','SUBJECT','Score','OverallScore']];
+  studs.forEach(st=>{
+    const v = mode==='ALL' ? getScore(st, subj, year, sem) : getComponentScore(st, subj, year, sem, mode);
+    if(v==null || v==='' || isNaN(v)) return;
+    const max = mode==='ALL' ? 100 : getComponentMax(st, subj, year, sem, mode, getAssessmentOveralls(st.class, subj, sem));
+    rows.push([ state.school.code || '', fullName(st), st.assRefId, st.learningArea, String(st.yearOfEntry), String(subjectCode(subj)), subj,
+      String(Math.round(v)).padStart(3,'0'), max!=null ? String(max) : '' ]);
+  });
+  if(rows.length<2){ toast('No captured scores to download for this selection.', true); return; }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [12,28,16,22,12,9,28,8,13].map(w=>({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'RESULT');
+  const modeName = mode==='ALL' ? 'Overall Score' : ASSESSMENT_MODES.find(m=>m.key===mode).label;
+  const safe = t => t.replace(/[^A-Za-z0-9 ()]/g,'').trim().replace(/\s+/g,'_');
+  XLSX.writeFile(wb, `${safe(subj)}_${safe(year)}__${safe(modeName)}_${sem==='s1'?'1st':'2nd'}_Sem.xlsx`);
+  toast(`Downloaded ${rows.length-1} record(s).`);
 }
 function arApplySearch(){
   const q = (document.getElementById('ar-search').value||'').toLowerCase().trim();
