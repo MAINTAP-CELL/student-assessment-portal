@@ -178,10 +178,10 @@ function stamp() {
 }
 async function trace(ctx, user, role, status, device, ip) {
   try {
-    const cfg = await getJ(ctx.db, 'config', {});
+    const cfg = ctx._cfg || (ctx._cfg = await getJ(ctx.db, 'config', {})); // read once per request: the config is large and parsing it is CPU time
     const host = [String(device || '').replace(/[<>]/g, '').slice(0, 60), ip || ''].filter(Boolean).join(' · ');
     const entry = { branch: (cfg.school && cfg.school.name) || '', when: stamp(), user: String(user || '(blank)').replace(/[<>]/g, '').slice(0, 80), role, host, status };
-    await update(ctx.db, 'trace', [], list => { list.push(entry); return list.slice(-300); });
+    ctx._trace = await update(ctx.db, 'trace', [], list => { list.push(entry); return list.slice(-300); });
   } catch (e) { /* tracing must never break sign-in */ }
 }
 async function registerFail(ctx, keys) {
@@ -226,11 +226,11 @@ async function visibleShardKeys(ctx, principal) {
 }
 async function buildData(ctx, principal) {
   const { db } = ctx;
-  const cfg = await getJ(db, 'config', { school: {}, classes: [], assessmentOveralls: {}, classTermSettings: {} });
+  const cfg = ctx._cfg || await getJ(db, 'config', { school: {}, classes: [], assessmentOveralls: {}, classTermSettings: {} });
   if (principal.role === 'admin') {
     const users = (await getJ(db, 'users', [])).map(publicUser);
     return { school: cfg.school, classes: cfg.classes, assessmentOveralls: cfg.assessmentOveralls, classTermSettings: cfg.classTermSettings,
-      users, loginTrace: (await getJ(db, 'trace', [])).slice(-200), students: [], shards: await visibleShardKeys(ctx, principal) };
+      users, loginTrace: (Array.isArray(ctx._trace) ? ctx._trace : await getJ(db, 'trace', [])).slice(-200), students: [], shards: await visibleShardKeys(ctx, principal) };
   }
   if (principal.role === 'teacher') {
     const me = principal.user;
