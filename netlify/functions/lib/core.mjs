@@ -176,9 +176,10 @@ function stamp() {
   const d = new Date(); const p = n => String(n).padStart(2, '0');
   return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;
 }
+const cfgOnce = (ctx) => ctx._cfgP || (ctx._cfgP = getJ(ctx.db, 'config', { school: {}, classes: [], assessmentOveralls: {}, classTermSettings: {} }));
 async function trace(ctx, user, role, status, device, ip) {
   try {
-    const cfg = ctx._cfg || (ctx._cfg = await getJ(ctx.db, 'config', {})); // read once per request: the config is large and parsing it is CPU time
+    const cfg = await cfgOnce(ctx); // read once per request: the config is large and parsing it is CPU time
     const host = [String(device || '').replace(/[<>]/g, '').slice(0, 60), ip || ''].filter(Boolean).join(' · ');
     const entry = { branch: (cfg.school && cfg.school.name) || '', when: stamp(), user: String(user || '(blank)').replace(/[<>]/g, '').slice(0, 80), role, host, status };
     ctx._trace = await update(ctx.db, 'trace', [], list => { list.push(entry); return list.slice(-300); });
@@ -226,12 +227,13 @@ async function visibleShardKeys(ctx, principal) {
 }
 async function buildData(ctx, principal) {
   const { db } = ctx;
-  const cfg = ctx._cfg || await getJ(db, 'config', { school: {}, classes: [], assessmentOveralls: {}, classTermSettings: {} });
+  // independent reads run together: every one is a round trip to the database
   if (principal.role === 'admin') {
-    const users = (await getJ(db, 'users', [])).map(publicUser);
+    const [cfg, usersRaw, tr, shards] = await Promise.all([cfgOnce(ctx), getJ(db, 'users', []), getJ(db, 'trace', []), visibleShardKeys(ctx, principal)]);
     return { school: cfg.school, classes: cfg.classes, assessmentOveralls: cfg.assessmentOveralls, classTermSettings: cfg.classTermSettings,
-      users, loginTrace: (Array.isArray(ctx._trace) ? ctx._trace : await getJ(db, 'trace', [])).slice(-200), students: [], shards: await visibleShardKeys(ctx, principal) };
+      users: usersRaw.map(publicUser), loginTrace: tr.slice(-200), students: [], shards };
   }
+  const cfg = await cfgOnce(ctx);
   if (principal.role === 'teacher') {
     const me = principal.user;
     const users = (await getJ(db, 'users', [])).map(u => u.id === me.id ? publicUser(u)
@@ -293,7 +295,7 @@ async function login(ctx, body, ip) {
   if (!username) return err(400, 'Enter your username.');
   if (!password) return err(400, 'Enter your password.');
   const ukey = 'u:' + username.toLowerCase(), ikey = 'ip:' + ip;
-  const lock = await getJ(ctx.db, 'lock', {});
+  const [lock, users] = await Promise.all([getJ(ctx.db, 'lock', {}), getJ(ctx.db, 'users', [])]);
   const now = Date.now();
   for (const k of [ukey, ikey]) {
     if (lock[k] && lock[k].until > now) {
@@ -302,7 +304,6 @@ async function login(ctx, body, ip) {
       return err(429, `Too many failed attempts. Try again in ${mins} minute(s).`);
     }
   }
-  const users = await getJ(ctx.db, 'users', []);
   const staff = users.find(u => u.status === 'active' && ((u.username && lc(u.username) === lc(username)) || (u.email && lc(u.email) === lc(username))));
   let principal = null, reason = 'Failed — unknown username';
   if (staff) {
@@ -330,9 +331,11 @@ async function login(ctx, body, ip) {
     if (after[ukey] && after[ukey].until > Date.now()) return err(429, `Too many failed attempts. Try again in ${LOCK_MS / 60000} minutes.`);
     return err(401, 'Invalid username or password. If you are a parent, check that your child\'s access has been switched on.');
   }
-  await clearFails(ctx, ukey);
+  if (lock[ukey]) await clearFails(ctx, ukey);
   const label = principal.role === 'parent' ? `${principal.student.assRefId} (${sessionUser(principal).name})` : `${principal.user.name} (${principal.user.email || principal.user.username})`;
-  await trace(ctx, label, principal.role === 'parent' ? 'Parent' : roleLabel, 'Success', device, ip);
+  const traced = trace(ctx, label, principal.role === 'parent' ? 'Parent' : roleLabel, 'Success', device, ip);
+  if (ctx.waitUntil) ctx.waitUntil(traced); // the login record is written in the background so sign-in does not wait for it
+  else await traced;
   if (principal.role !== 'parent' && principal.user.mustChange) return ok({ token: issue(ctx, principal), user: sessionUser(principal), data: null });
   return ok({ token: issue(ctx, principal), user: sessionUser(principal), data: await buildData(ctx, principal) });
 }
