@@ -4417,8 +4417,8 @@ function buildTerminalReportHTML(s, clsName, sem, year, data){
       </table>
 
       <table class="trm-remarks" style="border-collapse:collapse; width:100%; margin-top:10px;">
-        <tr><td class="role">Senior House Master/Mistress Remarks:</td><td>${terminalNarrative('house', avg)}
-          <div class="trm-sign">${s.houseMasterSignature ? `<img src="${s.houseMasterSignature}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${s.seniorHouseMaster || '_______________________'}<br/><span style="font-weight:400;">SENIOR HOUSE MASTER/MISTRESS</span></div>
+        <tr><td class="role">Form Master's/Mistress's Remarks:</td><td>${terminalNarrative('house', avg)}
+          <div class="trm-sign">${ts.formMasterSignature ? `<img src="${ts.formMasterSignature}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.formMaster || '_______________________'}<br/><span style="font-weight:400;">FORM MASTER/MISTRESS</span></div>
         </td></tr>
         <tr><td class="role">Assist. Head Academic Remarks:</td><td>${terminalNarrative('academic', avg)}
           <div class="trm-sign">${(ts.assistSignature||ASST_ACAD_SIGNATURE) ? `<img src="${(ts.assistSignature||ASST_ACAD_SIGNATURE)}" style="height:38px; max-width:160px; object-fit:contain; display:block; margin-left:auto;"/>` : ''}${ts.assistHeadAcademic || '_______________________'}<br/><span style="font-weight:400;">ASSISTANT HEAD ACADEMIC</span></div>
@@ -4509,6 +4509,7 @@ RENDER.termSettings = function(){
       </div>
       <div style="font-size:11.5px; color:var(--slate); margin:-6px 0 14px;">These two dates are kept separately for each semester — they follow the semester chosen here.</div>
       <div class="field"><label>Promoted To</label><input id="ts-promoted" placeholder="e.g. SECOND TERM"/></div>
+      <div class="field"><label>Form Master/Mistress (this class)</label><input id="ts-formmaster" placeholder="Full name — appears under the Form Master's remarks on the Terminal Report"/></div>
       <div class="field"><label>Assistant Head Academic</label><input id="ts-academic" placeholder="Full name"/>
         <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
           <div id="ts-sig-academic-prev" style="width:160px; height:60px; border:1px dashed var(--rule); border-radius:4px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:11px; color:var(--slate);">No signature</div>
@@ -4595,6 +4596,7 @@ function tsLoadForm(){
   document.getElementById('ts-year').value = ts.academicYear || '2025-2026';
   tsSemChanged();
   document.getElementById('ts-promoted').value = ts.promotedTo || '';
+  document.getElementById('ts-formmaster').value = ts.formMaster || '';
   document.getElementById('ts-academic').value = ts.assistHeadAcademic || '';
   document.getElementById('ts-headmaster').value = ts.headmaster || '';
   pendingSig = { assist: ts.assistSignature || ASST_ACAD_SIGNATURE, head: ts.headSignature || HEAD_SIGNATURE }; // the Headmaster's signature is pre-filled; click Save Term Settings to keep it for this class
@@ -4625,6 +4627,7 @@ function saveTermSettings(){
     academicYear: val('ts-year'),
     bySem,
     promotedTo: val('ts-promoted'),
+    formMaster: val('ts-formmaster'),
     assistHeadAcademic: val('ts-academic'),
     headmaster: val('ts-headmaster'),
     assistSignature: pendingSig.assist,
